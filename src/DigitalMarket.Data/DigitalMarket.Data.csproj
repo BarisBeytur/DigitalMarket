@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Domain\" />
+    <Folder Include="GenericRepository\" />
+    <Folder Include="Context\" />
+    <Folder Include="Configuration\" />
+    <Folder Include="UnitOfWork\" />
+  </ItemGroup>
+
 </Project>
