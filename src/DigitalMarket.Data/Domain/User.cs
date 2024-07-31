@@ -11,7 +11,7 @@ public class User : BaseEntity
     public string Email { get; set; }
     public string Role { get; set; }
     public string Password { get; set; }
-    public string Status { get; set; }
+    public bool Status { get; set; }
 
     public long DigitalWalletId { get; set; }
     public virtual DigitalWallet DigitalWallet { get; set; }

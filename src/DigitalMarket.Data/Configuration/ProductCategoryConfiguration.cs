@@ -1,12 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DigitalMarket.Data.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DigitalMarket.Data.Configuration
 {
-    internal class ProductCategoryConfiguration
+    public class ProductCategoryConfiguration : IEntityTypeConfiguration<ProductCategory>
     {
+        public void Configure(EntityTypeBuilder<ProductCategory> builder)
+        {
+            builder.Property(e => e.CategoryId)
+                .IsRequired();
+
+            builder.Property(e => e.ProductId)
+                .IsRequired();
+
+        }
     }
 }
