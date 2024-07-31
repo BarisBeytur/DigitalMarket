@@ -10,10 +10,10 @@ namespace DigitalMarket.Data.Configuration
         {
 
             builder.Property(x => x.IsActive)
-                .IsRequired(true);
+                .IsRequired();
 
             builder.Property(x => x.InsertUser)
-                .IsRequired(true)
+                .IsRequired()
                 .HasMaxLength(50);
 
             builder.Property(e => e.Name)
@@ -27,6 +27,9 @@ namespace DigitalMarket.Data.Configuration
             builder.Property(e => e.Tags)
                 .HasMaxLength(500);
 
+            builder.HasMany(c => c.ProductCategories)
+            .WithOne(pc => pc.Category)
+            .HasForeignKey(pc => pc.CategoryId);
         }
     }
 }

@@ -22,22 +22,26 @@ namespace DigitalMarket.Data.Configuration
             builder.Property(p => p.Price)
                 .IsRequired()
                 .HasPrecision(18, 2)
-                .HasDefaultValue(0);
+                .HasDefaultValue(0m);
 
             builder.Property(p => p.PointPercentage)
                 .IsRequired()
                 .HasPrecision(18, 2)
-                .HasDefaultValue(0);
+                .HasDefaultValue(0m);
 
             builder.Property(p => p.MaxPoint)
                 .IsRequired()
                 .HasPrecision(18, 2)
-                .HasDefaultValue(0);
+                .HasDefaultValue(0m);
 
             builder.Property(p => p.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
- 
+
+            builder.HasMany(p => p.ProductCategories)
+            .WithOne(pc => pc.Product)
+            .HasForeignKey(pc => pc.ProductId);
+
         }
     }
 }

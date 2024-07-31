@@ -15,6 +15,6 @@ namespace DigitalMarket.Data.Domain
         public bool IsActive { get; set; }
 
 
-        public virtual ICollection<Category> Categories { get; set; }
+        public virtual ICollection<ProductCategory> ProductCategories { get; set; }
     }
 }

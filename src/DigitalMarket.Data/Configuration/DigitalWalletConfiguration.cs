@@ -12,19 +12,19 @@ namespace DigitalMarket.Data.Configuration
                 .IsRequired(false);
 
             builder.Property(x => x.IsActive)
-                .IsRequired(true);
+                .IsRequired();
 
             builder.Property(x => x.InsertUser)
-                .IsRequired(true)
+                .IsRequired()
                 .HasMaxLength(50);
 
             builder.Property(x => x.Balance)
                 .IsRequired()
                 .HasPrecision(18, 2)
-                .HasDefaultValue(0);
+                .HasDefaultValue(0m);
 
             builder.Property(x => x.UserId)
-                .IsRequired(true);
+                .IsRequired();
 
             builder.HasOne(x => x.User)
                 .WithOne(x => x.DigitalWallet)
