@@ -7,11 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Domain\" />
     <Folder Include="GenericRepository\" />
     <Folder Include="Context\" />
-    <Folder Include="Configuration\" />
     <Folder Include="UnitOfWork\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalMarket.Base\DigitalMarket.Base.csproj" />
   </ItemGroup>
 
 </Project>
