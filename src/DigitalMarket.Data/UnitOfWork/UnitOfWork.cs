@@ -14,13 +14,26 @@ public class UnitOfWork<TEntity> : IDisposable, IUnitOfWork<TEntity> where TEnti
         _context = context;
     }
 
+    /// <summary>
+    /// Returns the repository for the entity
+    /// </summary>
     public IGenericRepository<TEntity> Repository => new GenericRepository<TEntity>(_context);
 
+
+    /// <summary>
+    /// Completes the unit of work
+    /// </summary>
+    /// <returns></returns>
     public async Task Complete()
     {
         await _context.SaveChangesAsync();
     }
 
+
+    /// <summary>
+    /// Completes the unit of work with a transaction
+    /// </summary>
+    /// <returns></returns>
     public async Task CompleteWithTransaction()
     {
         using (var transaction = _context.Database.BeginTransaction())
@@ -37,6 +50,10 @@ public class UnitOfWork<TEntity> : IDisposable, IUnitOfWork<TEntity> where TEnti
         }
     }
 
+
+    /// <summary>
+    /// Disposes the context
+    /// </summary>
     public void Dispose()
     {
         if (_context != null)
