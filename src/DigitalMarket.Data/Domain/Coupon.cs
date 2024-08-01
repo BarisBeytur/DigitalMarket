@@ -6,7 +6,7 @@ namespace DigitalMarket.Data.Domain
     [Table("Coupon", Schema = "dbo")]
     public class Coupon : BaseEntity
     {
-        public int Code { get; set; }
+        public string Code { get; set; }
         public decimal Discount { get; set; }
     }
 }

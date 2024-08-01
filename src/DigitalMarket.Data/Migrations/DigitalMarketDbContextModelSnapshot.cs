@@ -69,9 +69,10 @@ namespace DigitalMarket.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("Code")
+                    b.Property<string>("Code")
+                        .IsRequired()
                         .HasMaxLength(15)
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<decimal>("Discount")
                         .ValueGeneratedOnAdd()
@@ -171,22 +172,19 @@ namespace DigitalMarket.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<long>("OrderDetailId")
-                        .HasColumnType("bigint");
-
                     b.Property<decimal?>("PointAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m);
 
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrderDetailId")
-                        .IsUnique();
 
                     b.HasIndex("UserId");
 

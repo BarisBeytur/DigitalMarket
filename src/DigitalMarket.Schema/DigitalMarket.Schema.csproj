@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalMarket.Base\DigitalMarket.Base.csproj" />
+    <ProjectReference Include="..\DigitalMarket.Data\DigitalMarket.Data.csproj" />
+  </ItemGroup>
+
 </Project>

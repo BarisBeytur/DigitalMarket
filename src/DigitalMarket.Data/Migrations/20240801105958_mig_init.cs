@@ -40,7 +40,7 @@ namespace DigitalMarket.Data.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Code = table.Column<int>(type: "int", maxLength: 15, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     Discount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m),
                     InsertUser = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     InsertDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -160,11 +160,11 @@ namespace DigitalMarket.Data.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CouponAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true, defaultValue: 0m),
                     PointAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true, defaultValue: 0m),
                     BasketAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true, defaultValue: 0m),
                     CouponCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    OrderDetailId = table.Column<long>(type: "bigint", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     InsertUser = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     InsertDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -229,13 +229,6 @@ namespace DigitalMarket.Data.Migrations
                 schema: "dbo",
                 table: "DigitalWallet",
                 column: "UserId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Order_OrderDetailId",
-                schema: "dbo",
-                table: "Order",
-                column: "OrderDetailId",
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -37,12 +37,14 @@ namespace DigitalMarket.Data.Configuration
                 .IsRequired(false)
                 .HasMaxLength(50);
 
-            builder.HasIndex(x => x.OrderDetailId)
-                .IsUnique();
-
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Orders)
                 .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(x => x.OrderDetails)
+                .WithOne(x => x.Order)
+                .HasForeignKey(x => x.OrderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
         }
