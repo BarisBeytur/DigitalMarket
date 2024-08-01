@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DigitalMarket.Business.CQRS.Commands
+namespace DigitalMarket.Business.CQRS.Commands.ProductCategoryCommands
 {
-    internal class ProductCategoryCommand
+    internal class UpdateProductCategoryCommand
     {
     }
 }

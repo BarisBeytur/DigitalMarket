@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DigitalMarket.Business.CQRS.Commands
+namespace DigitalMarket.Business.CQRS.Commands.ProductCommands
 {
-    internal class UserCommand
+    internal class DeleteProductCommand
     {
     }
 }

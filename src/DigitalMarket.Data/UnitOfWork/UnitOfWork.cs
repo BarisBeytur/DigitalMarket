@@ -24,7 +24,7 @@ public class UnitOfWork<TEntity> : IDisposable, IUnitOfWork<TEntity> where TEnti
     /// Completes the unit of work
     /// </summary>
     /// <returns></returns>
-    public async Task Complete()
+    public async Task Commit()
     {
         await _context.SaveChangesAsync();
     }
@@ -34,7 +34,7 @@ public class UnitOfWork<TEntity> : IDisposable, IUnitOfWork<TEntity> where TEnti
     /// Completes the unit of work with a transaction
     /// </summary>
     /// <returns></returns>
-    public async Task CompleteWithTransaction()
+    public async Task CommitWithTransaction()
     {
         using (var transaction = _context.Database.BeginTransaction())
         {

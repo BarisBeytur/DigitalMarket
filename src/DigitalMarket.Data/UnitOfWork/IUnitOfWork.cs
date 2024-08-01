@@ -10,8 +10,8 @@ namespace DigitalMarket.Data.UnitOfWork
 {
     public interface IUnitOfWork<TEntity> where TEntity : BaseEntity
     {
-        Task Complete();
-        Task CompleteWithTransaction();
+        Task Commit();
+        Task CommitWithTransaction();
         IGenericRepository<TEntity> Repository { get; }
     }
 }

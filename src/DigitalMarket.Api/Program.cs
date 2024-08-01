@@ -1,6 +1,11 @@
+using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
 using DigitalMarket.Data.Context;
+using DigitalMarket.Data.Domain;
+using DigitalMarket.Data.GenericRepository;
+using DigitalMarket.Data.UnitOfWork;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using System.Reflection;
 
 
 #region Services
@@ -12,6 +17,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IUnitOfWork<Category>, UnitOfWork<Category>>();
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(CreateCategoryCommandHandler).GetTypeInfo().Assembly));
 
 builder.Services.AddDbContext<DigitalMarketDbContext>(options =>
 {
