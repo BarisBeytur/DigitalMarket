@@ -7,10 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\" />
+    <Folder Include="CQRS\Commands\" />
+    <Folder Include="CQRS\Queries\" />
+    <Folder Include="Infrastructure\Messaging\" />
+    <Folder Include="Services\NotificationService\" />
     <Folder Include="Services\TokenService\" />
     <Folder Include="Validation\" />
-    <Folder Include="Queries\" />
   </ItemGroup>
 
 </Project>

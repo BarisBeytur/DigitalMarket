@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Schema\" />
-    <Folder Include="Response\" />
   </ItemGroup>
 
 </Project>
