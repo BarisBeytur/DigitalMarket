@@ -28,8 +28,7 @@ namespace DigitalMarket.Data.Configuration
 
             builder.HasOne(x => x.User)
                 .WithOne(x => x.DigitalWallet)
-                .HasForeignKey<DigitalWallet>(x => x.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey<DigitalWallet>(x => x.UserId);
 
             builder.HasIndex(x => x.UserId)
                 .IsUnique();

@@ -10,6 +10,6 @@ namespace DigitalMarket.Schema.Request
         public string Email { get; set; }
         public string Role { get; set; }
         public string Password { get; set; }
-        public bool Status { get; set; } = true;
+        public bool Status { get; set; }
     }
 }

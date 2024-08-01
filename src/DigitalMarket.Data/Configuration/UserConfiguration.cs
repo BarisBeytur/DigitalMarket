@@ -33,7 +33,8 @@ namespace DigitalMarket.Data.Configuration
 
             builder.HasOne(p => p.DigitalWallet)
                 .WithOne(p => p.User)
-                .HasForeignKey<User>(p => p.DigitalWalletId);
+                .HasForeignKey<User>(p => p.DigitalWalletId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(p => p.Orders)
                 .WithOne(p => p.User)

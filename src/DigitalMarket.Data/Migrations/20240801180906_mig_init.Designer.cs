@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DigitalMarket.Data.Migrations
 {
     [DbContext(typeof(DigitalMarketDbContext))]
-    [Migration("20240801105958_mig_init")]
+    [Migration("20240801180906_mig_init")]
     partial class mig_init
     {
         /// <inheritdoc />

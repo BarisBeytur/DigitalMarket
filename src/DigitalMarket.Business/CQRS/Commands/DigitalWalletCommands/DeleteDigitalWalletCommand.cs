@@ -1,12 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DigitalMarket.Base.Response;
+using DigitalMarket.Data.Domain;
+using DigitalMarket.Data.UnitOfWork;
+using MediatR;
 
-namespace DigitalMarket.Business.CQRS.Commands.DigitalWalletCommands
+namespace DigitalMarket.Business.CQRS.Commands.DigitalWalletCommands;
+
+public class DeleteDigitalWalletCommand : IRequest<ApiResponse>
 {
-    internal class DeleteDigitalWalletCommand
+    public long Id { get; set; }
+}
+
+public class DeleteDigitalWalletCommandHandler : IRequestHandler<DeleteDigitalWalletCommand, ApiResponse>
+{
+
+    private readonly IUnitOfWork<DigitalWallet> _unitOfWork;
+
+    public DeleteDigitalWalletCommandHandler(IUnitOfWork<DigitalWallet> unitOfWork)
     {
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<ApiResponse> Handle(DeleteDigitalWalletCommand request, CancellationToken cancellationToken)
+    {
+        var repo = _unitOfWork.Repository;
+
+        var item = await repo.GetById(request.Id);
+
+        if (item == null)
+        {
+            return new ApiResponse("Item not found");
+        }
+
+        await repo.Delete(request.Id);
+
+        await _unitOfWork.Commit();
+
+        return new ApiResponse(true, "Deleted succesfully");
     }
 }
