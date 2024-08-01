@@ -20,10 +20,23 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ApiResponse<CategoryResponse>> CreateCategory(CategoryRequest categoryRequest)
+        public async Task<ApiResponse<CategoryResponse>> Post(CategoryRequest categoryRequest)
         {
-            var command = new CreateCategoryCommand(categoryRequest);
-            var response = await _mediator.Send(command);
+            var response = await _mediator.Send(new CreateCategoryCommand(categoryRequest));
+            return response;
+        }
+
+        [HttpDelete]
+        public async Task<ApiResponse> Delete(long id)
+        {
+            var response = await _mediator.Send(new DeleteCategoryCommand { Id = id });
+            return response;
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ApiResponse<CategoryResponse>> Put(long id, [FromBody] CategoryRequest categoryRequest)
+        {
+            var response = await _mediator.Send(new UpdateCategoryCommand(id, categoryRequest));
             return response;
         }
     }

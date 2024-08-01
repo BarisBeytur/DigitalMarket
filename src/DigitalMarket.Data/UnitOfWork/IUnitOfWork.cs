@@ -13,5 +13,6 @@ namespace DigitalMarket.Data.UnitOfWork
         Task Commit();
         Task CommitWithTransaction();
         IGenericRepository<TEntity> Repository { get; }
+        void Dispose();
     }
 }
