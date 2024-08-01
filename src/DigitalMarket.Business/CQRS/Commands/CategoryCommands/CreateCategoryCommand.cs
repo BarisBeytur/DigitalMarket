@@ -30,7 +30,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
     public async Task<ApiResponse<CategoryResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         // mapping
-        var category = new Category
+        var item = new Category
         {
             Name = request.CategoryRequest.Name,
             Url = request.CategoryRequest.Url,
@@ -40,17 +40,17 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
             IsActive = true
         };
 
-        await _unitOfWork.Repository.Insert(category);
+        await _unitOfWork.Repository.Insert(item);
 
         await _unitOfWork.Commit();
 
         return new ApiResponse<CategoryResponse>(
             new CategoryResponse
             {
-                Id = category.Id,
-                Name = category.Name,
-                Url = category.Url,
-                Tags = category.Tags
+                Id = item.Id,
+                Name = item.Name,
+                Url = item.Url,
+                Tags = item.Tags
             });
     }
 }

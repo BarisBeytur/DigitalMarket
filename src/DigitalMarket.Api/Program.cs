@@ -1,4 +1,5 @@
 using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
+using DigitalMarket.Business.CQRS.Commands.CouponCommands;
 using DigitalMarket.Data.Context;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.GenericRepository;
@@ -17,7 +18,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IUnitOfWork<Category>, UnitOfWork<Category>>();
+builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(CreateCategoryCommandHandler).GetTypeInfo().Assembly));
 

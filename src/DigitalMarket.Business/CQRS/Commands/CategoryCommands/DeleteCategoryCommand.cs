@@ -37,6 +37,6 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
 
         await _unitOfWork.Commit();
 
-        return new ApiResponse();
+        return new ApiResponse(true, "Deleted succesfully");
     }
 }

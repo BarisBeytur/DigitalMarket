@@ -19,6 +19,12 @@ public partial class ApiResponse
             Message = message;
         }
     }
+
+    public ApiResponse(bool isSuccess, string message = null)
+    {
+            IsSuccess = isSuccess;
+            Message = message;
+    }
 }
 
 public partial class ApiResponse<T>
