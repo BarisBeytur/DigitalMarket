@@ -8,6 +8,7 @@ public interface IGenericRepository<TEntity> where TEntity : BaseEntity
     Task<List<TEntity>> GetAll(params string[] includes);
     Task<TEntity?> GetById(long Id, params string[] includes);
     Task<TEntity> Insert(TEntity entity);
+    Task InsertRange(IEnumerable<TEntity> entities);
     void Update(TEntity entity);
     void Delete(TEntity entity);
     Task Delete(long Id);

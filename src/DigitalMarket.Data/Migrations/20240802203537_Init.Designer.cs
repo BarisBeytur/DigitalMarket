@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DigitalMarket.Data.Migrations
 {
     [DbContext(typeof(DigitalMarketDbContext))]
-    [Migration("20240801180906_mig_init")]
-    partial class mig_init
+    [Migration("20240802203537_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -300,13 +300,13 @@ namespace DigitalMarket.Data.Migrations
 
             modelBuilder.Entity("DigitalMarket.Data.Domain.ProductCategory", b =>
                 {
-                    b.Property<long>("ProductId")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CategoryId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Id")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("InsertDate")
@@ -319,9 +319,15 @@ namespace DigitalMarket.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.HasKey("ProductId", "CategoryId");
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("ProductId", "CategoryId")
+                        .IsUnique();
 
                     b.ToTable("ProductCategory", "dbo");
                 });

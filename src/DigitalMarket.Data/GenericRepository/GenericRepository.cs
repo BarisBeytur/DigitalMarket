@@ -71,4 +71,9 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         query = includes.Aggregate(query, (current, inc) => EntityFrameworkQueryableExtensions.Include(current, inc));
         return await query.ToListAsync();
     }
+
+    public Task InsertRange(IEnumerable<TEntity> entities)
+    {
+        return _context.Set<TEntity>().AddRangeAsync(entities);
+    }
 }

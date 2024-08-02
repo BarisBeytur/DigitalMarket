@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DigitalMarket.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class mig_init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -127,16 +127,17 @@ namespace DigitalMarket.Data.Migrations
                 schema: "dbo",
                 columns: table => new
                 {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CategoryId = table.Column<long>(type: "bigint", nullable: false),
                     ProductId = table.Column<long>(type: "bigint", nullable: false),
-                    Id = table.Column<long>(type: "bigint", nullable: false),
                     InsertUser = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     InsertDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductCategory", x => new { x.ProductId, x.CategoryId });
+                    table.PrimaryKey("PK_ProductCategory", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ProductCategory_Category_CategoryId",
                         column: x => x.CategoryId,
@@ -254,6 +255,13 @@ namespace DigitalMarket.Data.Migrations
                 schema: "dbo",
                 table: "ProductCategory",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductCategory_ProductId_CategoryId",
+                schema: "dbo",
+                table: "ProductCategory",
+                columns: new[] { "ProductId", "CategoryId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_DigitalWalletId",

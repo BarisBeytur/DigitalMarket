@@ -1,4 +1,5 @@
 ﻿using DigitalMarket.Base.Schema;
+using DigitalMarket.Data.Domain;
 
 namespace DigitalMarket.Schema.Request
 {
@@ -11,6 +12,5 @@ namespace DigitalMarket.Schema.Request
         public decimal PointPercentage { get; set; }
         public decimal MaxPoint { get; set; }
         public bool IsActive { get; set; } = true;
-
     }
 }

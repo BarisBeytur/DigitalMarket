@@ -8,13 +8,18 @@ namespace DigitalMarket.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<ProductCategory> builder)
         {
+
+            builder.HasKey(e => e.Id);
+
+
             builder.Property(e => e.CategoryId)
                 .IsRequired();
 
             builder.Property(e => e.ProductId)
                 .IsRequired();
 
-            builder.HasKey(pc => new { pc.ProductId, pc.CategoryId });
+            builder.HasIndex(pc => new { pc.ProductId, pc.CategoryId })
+                               .IsUnique();
 
             builder.HasOne(pc => pc.Category)
                 .WithMany(c => c.ProductCategories)
