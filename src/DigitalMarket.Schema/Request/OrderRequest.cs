@@ -9,7 +9,6 @@ namespace DigitalMarket.Schema.Request
         public decimal? PointAmount { get; set; }
         public decimal? BasketAmount { get; set; }
         public string? CouponCode { get; set; }
-        public long OrderDetailId { get; set; }
         public long UserId { get; set; }
     }
 }
