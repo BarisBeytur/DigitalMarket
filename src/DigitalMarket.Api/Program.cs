@@ -1,5 +1,8 @@
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
 using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
+using DigitalMarket.Business.Infrastructure.DependencyResolvers;
 using DigitalMarket.Business.Infrastructure.Mapping.AutoMapper;
 using DigitalMarket.Business.Validation;
 using DigitalMarket.Data.Context;
@@ -27,8 +30,6 @@ builder.Services.AddSwaggerGen();
 var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperConfig()); });
 builder.Services.AddSingleton(config.CreateMapper());
 
-builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
-
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(CreateCategoryCommandHandler).GetTypeInfo().Assembly));
 
 builder.Services.AddDbContext<DigitalMarketDbContext>(options =>
@@ -36,6 +37,12 @@ builder.Services.AddDbContext<DigitalMarketDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DigitalMarketDbConnection"));
 });
 
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+
+builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
+{
+    containerBuilder.RegisterModule(new AutofacBusinessModule());
+});
 
 #endregion
 
