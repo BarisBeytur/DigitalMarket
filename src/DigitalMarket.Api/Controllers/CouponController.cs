@@ -1,5 +1,6 @@
 ﻿using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.CouponCommands;
+using DigitalMarket.Business.CQRS.Queries.CouponQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
@@ -16,6 +17,20 @@ public class CouponController : ControllerBase
     public CouponController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet]
+    public async Task<ApiResponse<IEnumerable<CouponResponse>>> GetAll()
+    {
+        var response = await _mediator.Send(new GetAllCouponQuery());
+        return response;
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ApiResponse<CouponResponse>> Get(long id)
+    {
+        var response = await _mediator.Send(new GetCouponByIdQuery(id));
+        return response;
     }
 
     [HttpPost]

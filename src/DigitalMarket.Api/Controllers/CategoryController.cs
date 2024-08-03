@@ -1,5 +1,6 @@
 ﻿using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
+using DigitalMarket.Business.CQRS.Queries.CategoryQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
@@ -17,6 +18,20 @@ namespace DigitalMarket.Api.Controllers
         public CategoryController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<ApiResponse<IEnumerable<CategoryResponse>>> GetAll()
+        {
+            var response = await _mediator.Send(new GetAllCategoryQuery());
+            return response;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ApiResponse<CategoryResponse>> Get(long id)
+        {
+            var response = await _mediator.Send(new GetCategoryByIdQuery(id));
+            return response;
         }
 
         [HttpPost]

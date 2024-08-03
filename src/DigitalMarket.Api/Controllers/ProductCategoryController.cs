@@ -1,9 +1,10 @@
 ﻿using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.ProductCategoryCommands;
+using DigitalMarket.Business.CQRS.Queries.ProductCategoryQueries;
+using DigitalMarket.Business.CQRS.Queries.ProductProductCategoryQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DigitalMarket.Api.Controllers
@@ -17,6 +18,20 @@ namespace DigitalMarket.Api.Controllers
         public ProductCategoryController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<ApiResponse<IEnumerable<ProductCategoryResponse>>> GetAll()
+        {
+            var response = await _mediator.Send(new GetAllProductCategoryQuery());
+            return response;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ApiResponse<ProductCategoryResponse>> Get(long id)
+        {
+            var response = await _mediator.Send(new GetProductCategoryByIdQuery(id));
+            return response;
         }
 
         [HttpPost]

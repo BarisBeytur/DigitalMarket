@@ -1,6 +1,7 @@
 ﻿using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.UserCommands;
 using DigitalMarket.Business.CQRS.Commands.UserCommands;
+using DigitalMarket.Business.CQRS.Queries.UserQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
@@ -18,6 +19,20 @@ namespace DigitalMarket.Api.Controllers
         public UserController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<ApiResponse<IEnumerable<UserResponse>>> GetAll()
+        {
+            var response = await _mediator.Send(new GetAllUserQuery());
+            return response;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ApiResponse<UserResponse>> Get(long id)
+        {
+            var response = await _mediator.Send(new GetUserByIdQuery(id));
+            return response;
         }
 
         [HttpPost]

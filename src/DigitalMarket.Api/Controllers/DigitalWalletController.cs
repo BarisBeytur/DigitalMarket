@@ -1,5 +1,6 @@
 ﻿using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.DigitalWalletCommands;
+using DigitalMarket.Business.CQRS.Queries.DigitalWalletQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
@@ -19,17 +20,21 @@ namespace DigitalMarket.Api.Controllers
             _mediator = mediator;
         }
 
-        //todo: customer olustugunda dijital cuzdan otomatik olusturulacak.
-
-
-
         //todo : dijital cuzdan silinmez. kullanici silinirse o zaman dijital cuzdan da otomatik silinir.
-        //[HttpDelete]
-        //public async Task<ApiResponse> Delete(long id)
-        //{
-        //    var response = await _mediator.Send(new DeleteDigitalWalletCommand { Id = id });
-        //    return response;
-        //}
+
+        [HttpGet]
+        public async Task<ApiResponse<IEnumerable<DigitalWalletResponse>>> GetAll()
+        {
+            var response = await _mediator.Send(new GetAllDigitalWalletQuery());
+            return response;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ApiResponse<DigitalWalletResponse>> Get(long id)
+        {
+            var response = await _mediator.Send(new GetDigitalWalletByIdQuery(id));
+            return response;
+        }
 
         [HttpPut("{id}")]
         public async Task<ApiResponse<DigitalWalletResponse>> Put(long id, [FromBody] DigitalWalletRequest digitalWalletRequest)

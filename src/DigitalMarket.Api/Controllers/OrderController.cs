@@ -1,5 +1,6 @@
 ﻿using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.OrderCommands;
+using DigitalMarket.Business.CQRS.Queries.OrderQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
@@ -17,6 +18,20 @@ namespace DigitalMarket.Api.Controllers
         public OrderController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<ApiResponse<IEnumerable<OrderResponse>>> GetAll()
+        {
+            var response = await _mediator.Send(new GetAllOrderQuery());
+            return response;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ApiResponse<OrderResponse>> Get(long id)
+        {
+            var response = await _mediator.Send(new GetOrderByIdQuery(id));
+            return response;
         }
 
         [HttpPost]

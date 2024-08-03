@@ -1,8 +1,7 @@
+using AutoMapper;
 using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
-using DigitalMarket.Business.CQRS.Commands.CouponCommands;
+using DigitalMarket.Business.Infrastructure.Mapping.AutoMapper;
 using DigitalMarket.Data.Context;
-using DigitalMarket.Data.Domain;
-using DigitalMarket.Data.GenericRepository;
 using DigitalMarket.Data.UnitOfWork;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperConfig()); });
+builder.Services.AddSingleton(config.CreateMapper());
 
 builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
 
