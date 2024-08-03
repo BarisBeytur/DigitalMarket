@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -28,10 +29,12 @@ public class UpdateDigitalWalletCommandHandler : IRequestHandler<UpdateDigitalWa
 {
 
     private readonly IUnitOfWork<DigitalWallet> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateDigitalWalletCommandHandler(IUnitOfWork<DigitalWallet> unitOfWork)
+    public UpdateDigitalWalletCommandHandler(IUnitOfWork<DigitalWallet> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -40,25 +43,13 @@ public class UpdateDigitalWalletCommandHandler : IRequestHandler<UpdateDigitalWa
         var item = await _unitOfWork.Repository.GetById(request.Id);
 
         if (item == null)
-        {
             return new ApiResponse<DigitalWalletResponse>("Item not found");
-        }
-
-        // mapping
-        item.Balance = request.Request.Balance;
-        item.PointBalance = request.Request.PointBalance;
-        item.UserId = request.Request.UserId;
+     
+        _mapper.Map(request.Request, item);
 
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<DigitalWalletResponse>(
-            new DigitalWalletResponse
-            {
-                Id = item.Id,
-                UserId = item.UserId,
-                PointBalance = item.PointBalance,
-                Balance = item.Balance
-            });
+        return new ApiResponse<DigitalWalletResponse>(_mapper.Map<DigitalWalletResponse>(item));
     }
 }

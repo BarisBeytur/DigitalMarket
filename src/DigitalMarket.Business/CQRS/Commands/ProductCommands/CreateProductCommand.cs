@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -20,43 +21,22 @@ public class CreateProductCommand : IRequest<ApiResponse<ProductResponse>>
 public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, ApiResponse<ProductResponse>>
 {
     private readonly IUnitOfWork<Product> _productUnitOfWork;
-    private readonly IUnitOfWork<ProductCategory> _productCategoriesUnitOfWork;
+    private readonly IMapper _mapper;
 
-    public CreateProductCommandHandler(IUnitOfWork<Product> productUnitOfWork, IUnitOfWork<ProductCategory> productCategoriesUnitOfWork)
+    public CreateProductCommandHandler(IUnitOfWork<Product> productUnitOfWork, IMapper mapper)
     {
         _productUnitOfWork = productUnitOfWork;
-        _productCategoriesUnitOfWork = productCategoriesUnitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<ProductResponse>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = new Product
-        {
-            Name = request.ProductRequest.Name,
-            Description = request.ProductRequest.Description,
-            StockCount = request.ProductRequest.StockCount,
-            Price = request.ProductRequest.Price,
-            PointPercentage = request.ProductRequest.PointPercentage,
-            MaxPoint = request.ProductRequest.MaxPoint,
-            IsActive = request.ProductRequest.IsActive,
-        };
+        var item = _mapper.Map<Product>(request.ProductRequest);
 
-        await _productUnitOfWork.Repository.Insert(product);
+        await _productUnitOfWork.Repository.Insert(item);
         await _productUnitOfWork.Commit();
 
-        var productResponse = new ProductResponse
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            StockCount = product.StockCount,
-            Price = product.Price,
-            PointPercentage = product.PointPercentage,
-            MaxPoint = product.MaxPoint,
-            IsActive = product.IsActive,
-        };
-
-        return new ApiResponse<ProductResponse>(productResponse);
+        return new ApiResponse<ProductResponse>(_mapper.Map<ProductResponse>(item));
     }
 
 }

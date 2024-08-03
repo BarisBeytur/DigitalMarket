@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -23,10 +24,12 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Api
 {
 
     private readonly IUnitOfWork<Order> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateOrderCommandHandler(IUnitOfWork<Order> unitOfWork)
+    public UpdateOrderCommandHandler(IUnitOfWork<Order> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -35,31 +38,13 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Api
         var item = await _unitOfWork.Repository.GetById(request.Id);
 
         if (item == null)
-        {
             return new ApiResponse<OrderResponse>("Item not found");
-        }
 
-        // mapping
-        item.UserId = request.Request.UserId;
-        item.BasketAmount = request.Request.BasketAmount;
-        item.CouponAmount = request.Request.CouponAmount;
-        item.CouponCode = request.Request.CouponCode;
-        item.PointAmount = request.Request.PointAmount;
-        item.TotalAmount = request.Request.TotalAmount;
+        _mapper.Map(request.Request, item);
 
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<OrderResponse>(
-            new OrderResponse
-            {
-                Id = item.Id,
-                TotalAmount = item.TotalAmount,
-                BasketAmount = item.BasketAmount,
-                CouponAmount = item.CouponAmount,
-                CouponCode = item.CouponCode,
-                PointAmount = item.PointAmount,
-                UserId = item.UserId
-            });
+        return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(item));
     }
 }

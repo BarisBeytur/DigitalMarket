@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -21,35 +22,23 @@ public class CreateCouponCommandHandler : IRequestHandler<CreateCouponCommand, A
 {
 
     private readonly IUnitOfWork<Coupon> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public CreateCouponCommandHandler(IUnitOfWork<Coupon> unitOfWork)
+    public CreateCouponCommandHandler(IUnitOfWork<Coupon> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<CouponResponse>> Handle(CreateCouponCommand request, CancellationToken cancellationToken)
     {
-        // mapping
-        var item = new Coupon
-        {
-            Code = request.CouponRequest.Code,
-            Discount = request.CouponRequest.Discount,
-            InsertDate = DateTime.Now,
-            InsertUser = "SystemAdmin",
-            IsActive = true,
-        };
+        var item = _mapper.Map<Coupon>(request.CouponRequest);
 
         await _unitOfWork.Repository.Insert(item);
 
         await _unitOfWork.Commit();
 
-        return new ApiResponse<CouponResponse>(
-            new CouponResponse
-            {
-                Id = item.Id,
-                Code = request.CouponRequest.Code,
-                Discount = request.CouponRequest.Discount,
-            });
+        return new ApiResponse<CouponResponse>(_mapper.Map<CouponResponse>(item));
     }
 }
 

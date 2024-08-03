@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -23,10 +24,12 @@ public class UpdateCouponCommandHandler : IRequestHandler<UpdateCouponCommand, A
 {
 
     private readonly IUnitOfWork<Coupon> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateCouponCommandHandler(IUnitOfWork<Coupon> unitOfWork)
+    public UpdateCouponCommandHandler(IUnitOfWork<Coupon> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -35,23 +38,13 @@ public class UpdateCouponCommandHandler : IRequestHandler<UpdateCouponCommand, A
         var item = await _unitOfWork.Repository.GetById(request.Id);
 
         if (item == null)
-        {
             return new ApiResponse<CouponResponse>("Item not found");
-        }
 
-        // mapping
-        item.Code = request.Request.Code;
-        item.Discount = request.Request.Discount;
+        _mapper.Map(request.Request, item);
 
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<CouponResponse>(
-            new CouponResponse
-            {
-                Id = item.Id,
-                Code = item.Code,
-                Discount = item.Discount
-            });
+        return new ApiResponse<CouponResponse>(_mapper.Map<CouponResponse>(item));
     }
 }

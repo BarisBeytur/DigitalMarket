@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -21,36 +22,23 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
 {
 
     private readonly IUnitOfWork<Category> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public CreateCategoryCommandHandler(IUnitOfWork<Category> unitOfWork)
+    public CreateCategoryCommandHandler(IUnitOfWork<Category> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<CategoryResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
-        // mapping
-        var item = new Category
-        {
-            Name = request.CategoryRequest.Name,
-            Url = request.CategoryRequest.Url,
-            Tags = request.CategoryRequest.Tags,
-            InsertUser = "testuser",
-            InsertDate = DateTime.Now,
-            IsActive = true
-        };
+
+        var item = _mapper.Map<Category>(request.CategoryRequest);
 
         await _unitOfWork.Repository.Insert(item);
 
         await _unitOfWork.Commit();
 
-        return new ApiResponse<CategoryResponse>(
-            new CategoryResponse
-            {
-                Id = item.Id,
-                Name = item.Name,
-                Url = item.Url,
-                Tags = item.Tags
-            });
+        return new ApiResponse<CategoryResponse>(_mapper.Map<CategoryResponse>(item));
     }
 }

@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -23,10 +24,12 @@ public class UpdateProductCategoryCommandHandler : IRequestHandler<UpdateProduct
 {
 
     private readonly IUnitOfWork<ProductCategory> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateProductCategoryCommandHandler(IUnitOfWork<ProductCategory> unitOfWork)
+    public UpdateProductCategoryCommandHandler(IUnitOfWork<ProductCategory> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -35,24 +38,14 @@ public class UpdateProductCategoryCommandHandler : IRequestHandler<UpdateProduct
         var item = await _unitOfWork.Repository.GetById(request.Id);
 
         if (item == null)
-        {
             return new ApiResponse<ProductCategoryResponse>("Item not found");
-        }
 
-        // mapping
-        item.ProductId = request.Request.ProductId;
-        item.CategoryId = request.Request.CategoryId;
+        _mapper.Map(request.Request, item);
 
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<ProductCategoryResponse>(
-            new ProductCategoryResponse
-            {
-                Id = item.Id,
-                ProductId = item.ProductId,
-                CategoryId = item.CategoryId
-            });
+        return new ApiResponse<ProductCategoryResponse>(_mapper.Map<ProductCategoryResponse>(item));
     }
 }
 

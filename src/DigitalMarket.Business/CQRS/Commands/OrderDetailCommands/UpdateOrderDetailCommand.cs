@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -24,10 +25,12 @@ public class UpdateOrderDetailCommandHandler : IRequestHandler<UpdateOrderDetail
 {
 
     private readonly IUnitOfWork<OrderDetail> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateOrderDetailCommandHandler(IUnitOfWork<OrderDetail> unitOfWork)
+    public UpdateOrderDetailCommandHandler(IUnitOfWork<OrderDetail> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -36,29 +39,14 @@ public class UpdateOrderDetailCommandHandler : IRequestHandler<UpdateOrderDetail
         var item = await _unitOfWork.Repository.GetById(request.Id);
 
         if (item == null)
-        {
             return new ApiResponse<OrderDetailResponse>("Item not found");
-        }
 
-        // mapping
-        item.ProductId = request.Request.ProductId;
-        item.Quantity = request.Request.Quantity;
-        item.Price = request.Request.Price; 
-        item.PointAmount = request.Request.PointAmount;
+        _mapper.Map(request.Request, item);
 
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<OrderDetailResponse>(
-            new OrderDetailResponse
-            {
-                Id = item.Id,
-                OrderId = item.OrderId,
-                PointAmount = item.PointAmount,
-                ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                Price = item.Price
-            });
+        return new ApiResponse<OrderDetailResponse>(_mapper.Map<OrderDetailResponse>(item));
     }
 }
 

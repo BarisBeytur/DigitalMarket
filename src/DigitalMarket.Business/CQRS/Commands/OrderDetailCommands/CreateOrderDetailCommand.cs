@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -21,38 +22,24 @@ public class CreateOrderDetailCommandHandler : IRequestHandler<CreateOrderDetail
 {
 
     private readonly IUnitOfWork<OrderDetail> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public CreateOrderDetailCommandHandler(IUnitOfWork<OrderDetail> unitOfWork)
+    public CreateOrderDetailCommandHandler(IUnitOfWork<OrderDetail> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<OrderDetailResponse>> Handle(CreateOrderDetailCommand request, CancellationToken cancellationToken)
     {
         // mapping
-        var item = new OrderDetail
-        {
-            OrderId = request.OrderDetailRequest.OrderId,
-            PointAmount = request.OrderDetailRequest.PointAmount,
-            ProductId = request.OrderDetailRequest.ProductId,
-            Quantity = request.OrderDetailRequest.Quantity,
-            Price = request.OrderDetailRequest.Price,          
-        };
+        var item = _mapper.Map<OrderDetail>(request.OrderDetailRequest);
 
         await _unitOfWork.Repository.Insert(item);
 
         await _unitOfWork.Commit();
 
-        return new ApiResponse<OrderDetailResponse>(
-            new OrderDetailResponse
-            {
-                Id = item.Id,
-                OrderId = request.OrderDetailRequest.OrderId,
-                PointAmount = request.OrderDetailRequest.PointAmount,
-                ProductId = request.OrderDetailRequest.ProductId,
-                Quantity = request.OrderDetailRequest.Quantity,
-                Price = request.OrderDetailRequest.Price,      
-            });
+        return new ApiResponse<OrderDetailResponse>(_mapper.Map<OrderDetailResponse>(item));
     }
 }
 

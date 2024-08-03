@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -23,10 +24,12 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, ApiRe
 {
 
     private readonly IUnitOfWork<User> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateUserCommandHandler(IUnitOfWork<User> unitOfWork)
+    public UpdateUserCommandHandler(IUnitOfWork<User> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -35,32 +38,14 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, ApiRe
         var item = await _unitOfWork.Repository.GetById(request.Id);
 
         if (item == null)
-        {
             return new ApiResponse<UserResponse>("Item not found");
-        }
 
-        // mapping
-        item.Name = request.Request.Name;
-        item.Surname = request.Request.Surname;
-        item.Email = request.Request.Email;
-        item.Password = request.Request.Password;
-        item.Status = request.Request.Status;
-        item.Role = request.Request.Role;
+        _mapper.Map(request.Request, item);
 
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<UserResponse>(
-            new UserResponse
-            {
-                Id = item.Id,
-                Name = item.Name,
-                Surname = item.Surname,
-                Email = item.Email,
-                Role = item.Role,
-                Status = item.Status,
-                DigitalWalletId = item.DigitalWalletId
-            });
+        return new ApiResponse<UserResponse>(_mapper.Map<UserResponse>(item));
     }
 }
 

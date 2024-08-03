@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -21,42 +22,23 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 {
 
     private readonly IUnitOfWork<Order> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public CreateOrderCommandHandler(IUnitOfWork<Order> unitOfWork)
+    public CreateOrderCommandHandler(IUnitOfWork<Order> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<OrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
-        // mapping
-        var item = new Order
-        {
-            BasketAmount = request.OrderRequest.BasketAmount,
-            CouponAmount = request.OrderRequest.CouponAmount,
-            CouponCode = request.OrderRequest.CouponCode,
-            PointAmount = request.OrderRequest.PointAmount,
-            TotalAmount = request.OrderRequest.TotalAmount,
-            UserId = request.OrderRequest.UserId,
-            InsertDate = DateTime.Now,
-            InsertUser = "SystemAdmin",
-            IsActive = true,
-        };
+        
+        var item = _mapper.Map<Order>(request.OrderRequest);
 
         await _unitOfWork.Repository.Insert(item);
 
         await _unitOfWork.Commit();
 
-        return new ApiResponse<OrderResponse>(
-            new OrderResponse
-            {
-                Id = item.Id,
-                BasketAmount = request.OrderRequest.BasketAmount,
-                CouponAmount = request.OrderRequest.CouponAmount,
-                CouponCode = request.OrderRequest.CouponCode,
-                PointAmount = request.OrderRequest.PointAmount,
-                TotalAmount = request.OrderRequest.TotalAmount,
-                UserId = request.OrderRequest.UserId,
-            });
+        return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(item));
     }
 }

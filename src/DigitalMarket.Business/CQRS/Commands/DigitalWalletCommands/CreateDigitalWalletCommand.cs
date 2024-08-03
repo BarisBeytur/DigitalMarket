@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -21,37 +22,24 @@ public class CreateDigitalWalletCommandHandler : IRequestHandler<CreateDigitalWa
 {
 
     private readonly IUnitOfWork<DigitalWallet> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public CreateDigitalWalletCommandHandler(IUnitOfWork<DigitalWallet> unitOfWork)
+    public CreateDigitalWalletCommandHandler(IUnitOfWork<DigitalWallet> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<DigitalWalletResponse>> Handle(CreateDigitalWalletCommand request, CancellationToken cancellationToken)
     {
-        // mapping
-        var item = new DigitalWallet
-        {
-            Balance = request.DigitalWalletRequest.Balance,
-            PointBalance = request.DigitalWalletRequest.PointBalance,
-            UserId = request.DigitalWalletRequest.UserId,
-            InsertDate = DateTime.Now,
-            InsertUser = "SystemAdmin",
-            IsActive = true,
-        };
+
+        var item = _mapper.Map<DigitalWallet>(request.DigitalWalletRequest);
 
         await _unitOfWork.Repository.Insert(item);
 
         await _unitOfWork.Commit();
 
-        return new ApiResponse<DigitalWalletResponse>(
-            new DigitalWalletResponse
-            {
-                Id = item.Id,
-                Balance = request.DigitalWalletRequest.Balance,
-                PointBalance = request.DigitalWalletRequest.PointBalance,
-                UserId = request.DigitalWalletRequest.UserId,
-            });
+        return new ApiResponse<DigitalWalletResponse>(_mapper.Map<DigitalWalletResponse>(item));
     }
 }
 

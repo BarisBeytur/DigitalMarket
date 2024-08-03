@@ -1,4 +1,5 @@
-﻿using DigitalMarket.Base.Response;
+﻿using AutoMapper;
+using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -23,10 +24,12 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 {
 
     private readonly IUnitOfWork<Product> _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateProductCommandHandler(IUnitOfWork<Product> unitOfWork)
+    public UpdateProductCommandHandler(IUnitOfWork<Product> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -35,33 +38,13 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         var item = await _unitOfWork.Repository.GetById(request.Id);
 
         if (item == null)
-        {
             return new ApiResponse<ProductResponse>("Item not found");
-        }
 
-        // mapping
-        item.Description = request.Request.Description;
-        item.Price = request.Request.Price;
-        item.PointPercentage = request.Request.PointPercentage;
-        item.MaxPoint = request.Request.MaxPoint;
-        item.Name = request.Request.Name;
-        item.StockCount = request.Request.StockCount;
-        item.IsActive = request.Request.IsActive;
+        _mapper.Map(request.Request, item);
 
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<ProductResponse>(
-            new ProductResponse
-            {
-                Id = item.Id,
-                Description = item.Description,
-                MaxPoint = item.MaxPoint,
-                Name = item.Name,
-                PointPercentage = item.PointPercentage,
-                Price = item.Price,
-                StockCount = item.StockCount,
-                IsActive = item.IsActive
-            });
+        return new ApiResponse<ProductResponse>(_mapper.Map<ProductResponse>(item));
     }
 }
