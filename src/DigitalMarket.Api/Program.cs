@@ -1,8 +1,10 @@
 using AutoMapper;
 using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
 using DigitalMarket.Business.Infrastructure.Mapping.AutoMapper;
+using DigitalMarket.Business.Validation;
 using DigitalMarket.Data.Context;
 using DigitalMarket.Data.UnitOfWork;
+using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -13,7 +15,12 @@ using System.Reflection;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(x =>
+{
+    x.RegisterValidatorsFromAssemblyContaining<BaseValidator>();
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
