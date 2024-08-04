@@ -23,6 +23,7 @@ namespace DigitalMarket.Business.Infrastructure.Mapping.AutoMapper
 
             CreateMap<DigitalWallet, DigitalWalletResponse>();
             CreateMap<DigitalWalletRequest, DigitalWallet>();
+            CreateMap<DigitalWallet, PointBalanceResponse>().ReverseMap();
 
             CreateMap<Order, OrderResponse>();
             CreateMap<OrderRequest, Order>();

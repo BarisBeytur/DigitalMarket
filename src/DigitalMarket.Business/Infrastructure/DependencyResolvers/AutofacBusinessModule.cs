@@ -8,6 +8,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 
 namespace DigitalMarket.Business.Infrastructure.DependencyResolvers
 {
@@ -55,6 +56,15 @@ namespace DigitalMarket.Business.Infrastructure.DependencyResolvers
 
                 return new DigitalMarketDbContext(optionsBuilder.Options);
             }).AsSelf().InstancePerLifetimeScope();
+
+
+            // Redis
+            builder.Register(c =>
+            {
+                var config = c.Resolve<IConfiguration>();
+                var configuration = ConfigurationOptions.Parse(config.GetSection("Redis:ConnectionString").Value, true);
+                return ConnectionMultiplexer.Connect(configuration);
+            }).As<IConnectionMultiplexer>().SingleInstance();
 
         }
     }

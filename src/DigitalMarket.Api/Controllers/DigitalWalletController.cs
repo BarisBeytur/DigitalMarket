@@ -20,8 +20,6 @@ namespace DigitalMarket.Api.Controllers
             _mediator = mediator;
         }
 
-        //todo : dijital cuzdan silinmez. kullanici silinirse o zaman dijital cuzdan da otomatik silinir.
-
         [HttpGet]
         public async Task<ApiResponse<IEnumerable<DigitalWalletResponse>>> GetAll()
         {
@@ -33,6 +31,13 @@ namespace DigitalMarket.Api.Controllers
         public async Task<ApiResponse<DigitalWalletResponse>> Get(long id)
         {
             var response = await _mediator.Send(new GetDigitalWalletByIdQuery(id));
+            return response;
+        }
+
+        [HttpGet("point-balance/{userId}")]
+        public async Task<ApiResponse<PointBalanceResponse>> GetPointBalance(long userId)
+        {
+            var response = await _mediator.Send(new GetPointBalanceQuery { UserId = userId });
             return response;
         }
 
