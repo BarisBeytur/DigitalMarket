@@ -27,16 +27,6 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperConfig()); });
-builder.Services.AddSingleton(config.CreateMapper());
-
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(CreateCategoryCommandHandler).GetTypeInfo().Assembly));
-
-builder.Services.AddDbContext<DigitalMarketDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DigitalMarketDbConnection"));
-});
-
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
@@ -45,8 +35,6 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 });
 
 #endregion
-
-
 
 
 #region Middlewares
