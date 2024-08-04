@@ -18,6 +18,10 @@ namespace DigitalMarket.Data.Configuration
             builder.Property(x => x.InsertUser)
                 .IsRequired().HasMaxLength(50);
 
+            builder.Property(x => x.Status)
+                .IsRequired()
+                .HasDefaultValue(1);
+
             builder.Property(p => p.CouponAmount)
                 .IsRequired(false)
                 .HasPrecision(18, 2)

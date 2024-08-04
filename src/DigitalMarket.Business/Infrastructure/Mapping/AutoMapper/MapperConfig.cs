@@ -27,7 +27,8 @@ namespace DigitalMarket.Business.Infrastructure.Mapping.AutoMapper
             CreateMap<Order, OrderResponse>();
             CreateMap<OrderRequest, Order>();
 
-            CreateMap<OrderDetail, OrderDetailResponse>();
+            CreateMap<OrderDetail, OrderDetailResponse>()
+                .ForMember(dest => dest.CategoryIds, opt => opt.MapFrom(src => src.Product.ProductCategories.Select(pc => pc.CategoryId).ToArray()));
             CreateMap<OrderDetailRequest, OrderDetail>();
 
             CreateMap<Product, ProductResponse>();

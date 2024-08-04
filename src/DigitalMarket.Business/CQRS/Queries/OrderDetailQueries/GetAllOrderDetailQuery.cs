@@ -25,7 +25,7 @@ namespace DigitalMarket.Business.CQRS.Queries.OrderDetailQueries
 
         public async Task<ApiResponse<IEnumerable<OrderDetailResponse>>> Handle(GetAllOrderDetailQuery request, CancellationToken cancellationToken)
         {
-            var items = await _unitOfWork.Repository.GetAll();
+            var items = await _unitOfWork.Repository.GetAll("Product", "Product.ProductCategories");
 
             var mappedResult = _mapper.Map<IEnumerable<OrderDetailResponse>>(items);
 

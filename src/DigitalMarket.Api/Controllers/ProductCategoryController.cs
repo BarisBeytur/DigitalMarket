@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DigitalMarket.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ProductCategoryController : ControllerBase
     {

@@ -36,7 +36,7 @@ namespace DigitalMarket.Business.CQRS.Queries.OrderDetailQueries
 
         public async Task<ApiResponse<OrderDetailResponse>> Handle(GetOrderDetailByIdQuery query, CancellationToken cancellationToken)
         {
-            var result = await _unitOfWork.Repository.GetById(query.Id);
+            var result = await _unitOfWork.Repository.GetById(query.Id, "Product", "Product.ProductCategories");
 
             if (result == null)
             {

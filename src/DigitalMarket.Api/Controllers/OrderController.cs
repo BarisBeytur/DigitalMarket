@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DigitalMarket.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class OrderController : ControllerBase
     {
@@ -24,6 +24,13 @@ namespace DigitalMarket.Api.Controllers
         public async Task<ApiResponse<IEnumerable<OrderResponse>>> GetAll()
         {
             var response = await _mediator.Send(new GetAllOrderQuery());
+            return response;
+        }
+
+        [HttpGet("GetActiveOrders")]
+        public async Task<ApiResponse<List<OrderResponse>>> GetActiveOrders()
+        {
+            var response = await _mediator.Send(new GetActiveOrderQuery());
             return response;
         }
 
