@@ -29,7 +29,8 @@ namespace DigitalMarket.Data.Configuration
 
             builder.HasMany(c => c.ProductCategories)
             .WithOne(pc => pc.Category)
-            .HasForeignKey(pc => pc.CategoryId);
+            .HasForeignKey(pc => pc.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

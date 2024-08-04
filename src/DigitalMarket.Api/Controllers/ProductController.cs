@@ -27,6 +27,13 @@ namespace DigitalMarket.Api.Controllers
             return response;
         }
 
+        [HttpGet("GetByCategoryId")]
+        public async Task<ApiResponse<List<ProductWithCategoryResponse>>> GetByCategory(long categoryId)
+        {
+            var response = await _mediator.Send(new GetProductByCategoryQuery { CategoryId = categoryId });
+            return response;
+        }
+
         [HttpGet("{id}")]
         public async Task<ApiResponse<ProductResponse>> Get(long id)
         {

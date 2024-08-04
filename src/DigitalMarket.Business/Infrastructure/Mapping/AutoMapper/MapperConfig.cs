@@ -33,11 +33,15 @@ namespace DigitalMarket.Business.Infrastructure.Mapping.AutoMapper
             CreateMap<Product, ProductResponse>();
             CreateMap<ProductRequest, Product>();
 
+
             CreateMap<ProductCategory, ProductCategoryResponse>();
             CreateMap<ProductCategoryRequest, ProductCategory>();
+            CreateMap<ProductCategory, ProductWithCategoryResponse>();
+
 
             CreateMap<User, UserResponse>();
             CreateMap<UserRequest, User>();
+
 
         }
     }
