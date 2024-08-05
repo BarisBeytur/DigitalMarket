@@ -1,11 +1,8 @@
-﻿using Azure.Core;
-using DigitalMarket.Base.Response;
+﻿using DigitalMarket.Base.Response;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Response;
 using MediatR;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using StackExchange.Redis;
 using System.Globalization;
 
@@ -58,7 +55,8 @@ public class GetCartByUserIdQueryHandler : IRequestHandler<GetCartByUserIdQuery,
             result.Add(new CartResponse
             {
                 ProductId = productId,
-                ProductName = product?.Name ?? "Unknown", // Provide a default name if product is not found
+                ProductName = product?.Name ?? "Unknown",
+                Price = product?.Price ?? 0,
                 Quantity = int.Parse(entry.Value.ToString(), CultureInfo.InvariantCulture),
             });
         }
