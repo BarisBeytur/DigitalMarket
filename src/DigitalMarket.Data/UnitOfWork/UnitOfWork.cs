@@ -8,6 +8,7 @@ namespace DigitalMarket.Data.UnitOfWork;
 public class UnitOfWork<TEntity> : IDisposable, IUnitOfWork<TEntity> where TEntity : BaseEntity
 {
     private readonly DigitalMarketDbContext _context;
+    private IGenericRepository<TEntity> _repository;
 
     public UnitOfWork(DigitalMarketDbContext context)
     {
@@ -17,7 +18,13 @@ public class UnitOfWork<TEntity> : IDisposable, IUnitOfWork<TEntity> where TEnti
     /// <summary>
     /// Returns the repository for the entity
     /// </summary>
-    public IGenericRepository<TEntity> Repository => new GenericRepository<TEntity>(_context);
+    public IGenericRepository<TEntity> Repository
+    {
+        get
+        {
+            return _repository ??= new GenericRepository<TEntity>(_context);
+        }
+    }
 
 
     /// <summary>
