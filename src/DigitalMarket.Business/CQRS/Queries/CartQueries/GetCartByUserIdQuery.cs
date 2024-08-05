@@ -1,4 +1,7 @@
-﻿using DigitalMarket.Base.Response;
+﻿using Azure.Core;
+using DigitalMarket.Base.Response;
+using DigitalMarket.Data.Domain;
+using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Response;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -10,38 +13,41 @@ namespace DigitalMarket.Business.CQRS.Queries.CartQueries;
 
 public class GetCartByUserIdQuery : IRequest<ApiResponse<IEnumerable<CartResponse>>>
 {
-    public string Key { get; set; }
+    public long UserId { get; set; }
 
-    public GetCartByUserIdQuery(string key)
+    public GetCartByUserIdQuery(long userId)
     {
-        Key = key;
+        UserId = userId;
     }
 }
 
 public class GetCartByUserIdQueryHandler : IRequestHandler<GetCartByUserIdQuery, ApiResponse<IEnumerable<CartResponse>>>
 {
     private readonly IConnectionMultiplexer _redis;
+    private readonly IUnitOfWork<User> _userUnitOfWork;
 
-    public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis)
+    public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis, IUnitOfWork<User> userUnitOfWork)
     {
         _redis = redis;
+        _userUnitOfWork = userUnitOfWork;
     }
 
     public async Task<ApiResponse<IEnumerable<CartResponse>>> Handle(GetCartByUserIdQuery request, CancellationToken cancellationToken)
     {
-        var db = _redis.GetDatabase();
 
-        // Check if the key is a hash
-        var keyType = await db.KeyTypeAsync(request.Key);
-        if (keyType != RedisType.Hash)
+        var user = await _userUnitOfWork.Repository.GetById(request.UserId);
+
+        if (user == null)
         {
-            throw new InvalidOperationException("The key type is not a hash.");
+            return new ApiResponse<IEnumerable<CartResponse>>("User not found");
         }
 
-        // Retrieve all fields and values from the hash
-        var hashEntries = await db.HashGetAllAsync(request.Key);
+        var cartKey = $"cart:{request.UserId}";
 
-        // Convert to a list of CartResponse
+        var db = _redis.GetDatabase();
+
+        var hashEntries = await db.HashGetAllAsync(cartKey);
+
         var result = hashEntries.Select(x => new CartResponse
         {
             Quantity = int.Parse(x.Value.ToString(), CultureInfo.InvariantCulture),

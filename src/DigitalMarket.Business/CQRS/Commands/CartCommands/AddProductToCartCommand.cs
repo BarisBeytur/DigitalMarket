@@ -1,4 +1,6 @@
 ﻿using DigitalMarket.Base.Response;
+using DigitalMarket.Data.Domain;
+using DigitalMarket.Data.UnitOfWork;
 using MediatR;
 using StackExchange.Redis;
 
@@ -14,10 +16,12 @@ public class AddProductToCartCommand : IRequest<ApiResponse>
 public class AddProductToCartCommandHandler : IRequestHandler<AddProductToCartCommand, ApiResponse>
 {
     private readonly IConnectionMultiplexer _redis;
+    private readonly IUnitOfWork<Product> _productUnitOfWork;
 
-    public AddProductToCartCommandHandler(IConnectionMultiplexer redis)
+    public AddProductToCartCommandHandler(IConnectionMultiplexer redis, IUnitOfWork<Product> productUnitOfWork)
     {
         _redis = redis;
+        _productUnitOfWork = productUnitOfWork;
     }
 
     public async Task<ApiResponse> Handle(AddProductToCartCommand request, CancellationToken cancellationToken)
@@ -25,7 +29,13 @@ public class AddProductToCartCommandHandler : IRequestHandler<AddProductToCartCo
         var db = _redis.GetDatabase();
         var cartKey = $"cart:{request.UserId}";
 
-        // Check if cart exists, if not create it
+        var product = await _productUnitOfWork.Repository.GetById(request.ProductId);
+
+        if (product == null)
+        {
+            return new ApiResponse("Product not found");
+        }
+
         var cart = await db.HashGetAllAsync(cartKey);
         if (cart.Length == 0)
         {
@@ -38,10 +48,8 @@ public class AddProductToCartCommandHandler : IRequestHandler<AddProductToCartCo
         }
         else
         {
-            // Update existing cart
             await db.HashIncrementAsync(cartKey, request.ProductId.ToString(), request.Quantity);
             return new ApiResponse("Cart successfully updated");
-
         }
 
     }

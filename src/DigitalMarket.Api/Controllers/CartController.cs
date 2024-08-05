@@ -1,8 +1,10 @@
 ﻿using Azure.Core;
 using DigitalMarket.Business.CQRS.Commands.CartCommands;
 using DigitalMarket.Business.CQRS.Queries.CartQueries;
+using DigitalMarket.Schema.Request;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace DigitalMarket.Api.Controllers
 {
@@ -18,18 +20,31 @@ namespace DigitalMarket.Api.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetCartByUserId(long userId)
+        [HttpGet]
+        public async Task<IActionResult> GetCartByUserId([FromHeader] long userId)
         {
-            var cartKey = $"cart:{userId}";
-            var command = new GetCartByUserIdQuery(cartKey);
+            var command = new GetCartByUserIdQuery(userId);
             var response = await _mediator.Send(command);
             return Ok(response);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddProductToCart(AddProductToCartCommand command)
+        [HttpPost("AddProductToCart")]
+        public async Task<IActionResult> AddProductToCart([FromHeader] long userId, [FromBody]AddProductToCartRequest request)
         {
+            var command = new AddProductToCartCommand()
+            {
+                UserId = userId,
+                ProductId = request.ProductId,
+                Quantity = request.Quantity
+            };
+            var response = await _mediator.Send(command);
+            return Ok(response);
+        }
+
+        [HttpDelete("DeleteCartItemByUserId")]
+        public async Task<IActionResult> DeleteCartItemByProductId([FromHeader] long userId)
+        {
+            var command = new DeleteCartCommand(userId);
             var response = await _mediator.Send(command);
             return Ok(response);
         }
