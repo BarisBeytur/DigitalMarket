@@ -20,6 +20,8 @@ namespace DigitalMarket.Data.Configuration
                 .HasMaxLength(50)
                 .IsRequired();
 
+            builder.HasIndex(p => p.Email).IsUnique();
+
             builder.Property(p => p.Role)
                 .HasMaxLength(50)
                 .IsRequired();
@@ -34,11 +36,12 @@ namespace DigitalMarket.Data.Configuration
             builder.HasOne(p => p.DigitalWallet)
                 .WithOne(p => p.User)
                 .HasForeignKey<User>(p => p.DigitalWalletId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(p => p.Orders)
                 .WithOne(p => p.User)
                 .HasForeignKey(p => p.UserId);
         }
     }
+
 }

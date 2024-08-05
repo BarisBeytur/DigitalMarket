@@ -6,48 +6,48 @@ using Newtonsoft.Json;
 using StackExchange.Redis;
 using System.Globalization;
 
-namespace DigitalMarket.Business.CQRS.Queries.CartQueries
-{
-    public class GetCartByUserIdQuery : IRequest<Dictionary<string, string>>
-    {
-        public string Key { get; set; }
+namespace DigitalMarket.Business.CQRS.Queries.CartQueries;
 
-        public GetCartByUserIdQuery(string key)
-        {
-            Key = key;
-        }
+public class GetCartByUserIdQuery : IRequest<ApiResponse<IEnumerable<CartResponse>>>
+{
+    public string Key { get; set; }
+
+    public GetCartByUserIdQuery(string key)
+    {
+        Key = key;
+    }
+}
+
+public class GetCartByUserIdQueryHandler : IRequestHandler<GetCartByUserIdQuery, ApiResponse<IEnumerable<CartResponse>>>
+{
+    private readonly IConnectionMultiplexer _redis;
+
+    public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis)
+    {
+        _redis = redis;
     }
 
-    public class GetCartByUserIdQueryHandler : IRequestHandler<GetCartByUserIdQuery, Dictionary<string, string>>
+    public async Task<ApiResponse<IEnumerable<CartResponse>>> Handle(GetCartByUserIdQuery request, CancellationToken cancellationToken)
     {
-        private readonly IConnectionMultiplexer _redis;
+        var db = _redis.GetDatabase();
 
-        public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis)
+        // Check if the key is a hash
+        var keyType = await db.KeyTypeAsync(request.Key);
+        if (keyType != RedisType.Hash)
         {
-            _redis = redis;
+            throw new InvalidOperationException("The key type is not a hash.");
         }
 
-        public async Task<Dictionary<string, string>> Handle(GetCartByUserIdQuery request, CancellationToken cancellationToken)
+        // Retrieve all fields and values from the hash
+        var hashEntries = await db.HashGetAllAsync(request.Key);
+
+        // Convert to a list of CartResponse
+        var result = hashEntries.Select(x => new CartResponse
         {
-            var db = _redis.GetDatabase();
+            Quantity = int.Parse(x.Value.ToString(), CultureInfo.InvariantCulture),
+            ProductId = long.Parse(x.Name.ToString(), CultureInfo.InvariantCulture)
+        }).ToList();
 
-            // Check if the key is a hash
-            var keyType = await db.KeyTypeAsync(request.Key);
-            if (keyType != RedisType.Hash)
-            {
-                throw new InvalidOperationException("The key type is not a hash.");
-            }
-
-            // Retrieve all fields and values from the hash
-            var hashEntries = await db.HashGetAllAsync(request.Key);
-
-            // Convert to a dictionary
-            var result = hashEntries.ToDictionary(
-                entry => entry.Name.ToString(),
-                entry => entry.Value.ToString()
-            );
-
-            return result;
-        }
+        return new ApiResponse<IEnumerable<CartResponse>>(result);
     }
 }

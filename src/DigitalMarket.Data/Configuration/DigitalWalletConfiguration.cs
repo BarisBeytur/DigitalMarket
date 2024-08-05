@@ -26,10 +26,6 @@ namespace DigitalMarket.Data.Configuration
             builder.Property(x => x.UserId)
                 .IsRequired();
 
-            builder.HasOne(x => x.User)
-                .WithOne(x => x.DigitalWallet)
-                .HasForeignKey<DigitalWallet>(x => x.UserId);
-
             builder.HasIndex(x => x.UserId)
                 .IsUnique();
         }

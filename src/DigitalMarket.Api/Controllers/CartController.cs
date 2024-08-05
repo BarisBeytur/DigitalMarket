@@ -23,15 +23,15 @@ namespace DigitalMarket.Api.Controllers
         {
             var cartKey = $"cart:{userId}";
             var command = new GetCartByUserIdQuery(cartKey);
-            var response = await _mediator.Send(command);  // Use await here
+            var response = await _mediator.Send(command);
             return Ok(response);
         }
 
         [HttpPost]
-        public IActionResult AddProductToCart(AddProductToCartCommand command)
+        public async Task<IActionResult> AddProductToCart(AddProductToCartCommand command)
         {
-            _mediator.Send(command);
-            return Ok();
+            var response = await _mediator.Send(command);
+            return Ok(response);
         }
 
     }

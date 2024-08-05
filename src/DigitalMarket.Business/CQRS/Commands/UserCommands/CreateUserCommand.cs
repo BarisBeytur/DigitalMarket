@@ -8,7 +8,6 @@ using DigitalMarket.Schema.Response;
 using MediatR;
 
 namespace DigitalMarket.Business.CQRS.Commands.UserCommands;
-
 public class CreateUserCommand : IRequest<ApiResponse<UserResponse>>
 {
     public UserRequest UserRequest { get; set; }
@@ -21,52 +20,42 @@ public class CreateUserCommand : IRequest<ApiResponse<UserResponse>>
 
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ApiResponse<UserResponse>>
 {
-
-    private readonly IUnitOfWork<User> _unitOfWork;
+    private readonly IUnitOfWork<User> _userUnitOfWork;
+    private readonly IUnitOfWork<DigitalWallet> _digitalWalletUnitOfWork;
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
 
-    public CreateUserCommandHandler(IUnitOfWork<User> unitOfWork, IMediator mediator, IMapper mapper)
+    public CreateUserCommandHandler(IUnitOfWork<User> unitOfWork, IMediator mediator, IMapper mapper, IUnitOfWork<DigitalWallet> digitalWalletUnitOfWork)
     {
-        _unitOfWork = unitOfWork;
+        _userUnitOfWork = unitOfWork;
         _mediator = mediator;
         _mapper = mapper;
+        _digitalWalletUnitOfWork = digitalWalletUnitOfWork;
     }
 
     public async Task<ApiResponse<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-
-        // Create a digital wallet for the user
-        var digitalWalletForUser = await _mediator.Send(new CreateDigitalWalletCommand(
-            new DigitalWalletRequest
-            {
-                Balance = 0m,
-                PointBalance = 0m,
-            }));
-
-        if (digitalWalletForUser == null || digitalWalletForUser.Data == null)
+        var digitalWallet = new DigitalWallet
         {
-            return new ApiResponse<UserResponse>("Failed to create digital wallet.");
-        }
+            Balance = 0m,
+            PointBalance = 0m,
+            IsActive = true,
+            InsertDate = DateTime.Now,
+            InsertUser = "System", 
+        };
+
+        await _digitalWalletUnitOfWork.Repository.Insert(digitalWallet);
+        await _digitalWalletUnitOfWork.CommitWithTransaction();
 
         var user = _mapper.Map<User>(request.UserRequest);
+        user.DigitalWalletId = digitalWallet.Id;
 
-        await _unitOfWork.Repository.Insert(user);
-        await _unitOfWork.CommitWithTransaction();
+        await _userUnitOfWork.Repository.Insert(user);
+        await _userUnitOfWork.CommitWithTransaction();
 
-        // Update digital wallet for assing user ID to digital wallet
-        var updateDigitalWalletResult = await _mediator.Send(
-            new UpdateDigitalWalletCommand(digitalWalletForUser.Data.Id, new DigitalWalletRequest
-            {
-                UserId = user.Id,
-                Balance = 0,
-                PointBalance = 0,
-            }));
-
-        if (!updateDigitalWalletResult.IsSuccess)
-        {
-            return new ApiResponse<UserResponse>("Failed to update digital wallet with user ID.");
-        }
+        digitalWallet.UserId = user.Id;
+        _digitalWalletUnitOfWork.Repository.Update(digitalWallet);
+        await _digitalWalletUnitOfWork.CommitWithTransaction();
 
         return new ApiResponse<UserResponse>(_mapper.Map<UserResponse>(user));
     }

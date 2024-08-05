@@ -1,47 +1,48 @@
 ﻿using DigitalMarket.Base.Response;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 
-namespace DigitalMarket.Business.CQRS.Commands.CartCommands
-{
-    public class AddProductToCartCommand : IRequest<ApiResponse>
-    {
-        public long UserId { get; set; }
-        public long ProductId { get; set; }
-        public int Quantity { get; set; }
+namespace DigitalMarket.Business.CQRS.Commands.CartCommands;
 
-        public AddProductToCartCommand(long userId, long productId, int quantity)
-        {
-            UserId = userId;
-            ProductId = productId;
-            Quantity = quantity;
-        }
+public class AddProductToCartCommand : IRequest<ApiResponse>
+{
+    public long UserId { get; set; }
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+}
+
+public class AddProductToCartCommandHandler : IRequestHandler<AddProductToCartCommand, ApiResponse>
+{
+    private readonly IConnectionMultiplexer _redis;
+
+    public AddProductToCartCommandHandler(IConnectionMultiplexer redis)
+    {
+        _redis = redis;
     }
 
-    public class AddProductToCartCommandHandler : IRequestHandler<AddProductToCartCommand, ApiResponse>
+    public async Task<ApiResponse> Handle(AddProductToCartCommand request, CancellationToken cancellationToken)
     {
+        var db = _redis.GetDatabase();
+        var cartKey = $"cart:{request.UserId}";
 
-        private readonly IConfiguration _configuration;
-        private readonly IConnectionMultiplexer _redis;
-
-
-        public AddProductToCartCommandHandler(IConfiguration configuration, IConnectionMultiplexer redis)
+        // Check if cart exists, if not create it
+        var cart = await db.HashGetAllAsync(cartKey);
+        if (cart.Length == 0)
         {
-            _configuration = configuration;
-            _redis = redis;
+            await db.HashSetAsync(cartKey, new HashEntry[]
+            {
+                new HashEntry(request.ProductId.ToString(), request.Quantity)
+            });
+
+            return new ApiResponse("Cart successfully created");
+        }
+        else
+        {
+            // Update existing cart
+            await db.HashIncrementAsync(cartKey, request.ProductId.ToString(), request.Quantity);
+            return new ApiResponse("Cart successfully updated");
+
         }
 
-        public async Task<ApiResponse> Handle(AddProductToCartCommand request, CancellationToken cancellationToken)
-        {
-
-            var cartKey = $"cart:{request.UserId}";
-
-            var db = _redis.GetDatabase();
-
-            await db.HashSetAsync(cartKey, request.ProductId.ToString(), request.Quantity);
-
-            return new ApiResponse();
-        }
     }
 }

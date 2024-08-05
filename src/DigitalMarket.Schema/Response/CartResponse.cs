@@ -8,7 +8,6 @@ namespace DigitalMarket.Schema.Response
 {
     public class CartResponse
     {
-        public long UserId { get; set; }
         public long ProductId { get; set; }
         public int Quantity { get; set; }
     }

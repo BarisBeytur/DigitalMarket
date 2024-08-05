@@ -20,7 +20,6 @@ public class CreateDigitalWalletCommand : IRequest<ApiResponse<DigitalWalletResp
 
 public class CreateDigitalWalletCommandHandler : IRequestHandler<CreateDigitalWalletCommand, ApiResponse<DigitalWalletResponse>>
 {
-
     private readonly IUnitOfWork<DigitalWallet> _unitOfWork;
     private readonly IMapper _mapper;
 
@@ -32,14 +31,12 @@ public class CreateDigitalWalletCommandHandler : IRequestHandler<CreateDigitalWa
 
     public async Task<ApiResponse<DigitalWalletResponse>> Handle(CreateDigitalWalletCommand request, CancellationToken cancellationToken)
     {
+        var digitalWallet = _mapper.Map<DigitalWallet>(request.DigitalWalletRequest);
 
-        var item = _mapper.Map<DigitalWallet>(request.DigitalWalletRequest);
-
-        await _unitOfWork.Repository.Insert(item);
-
+        await _unitOfWork.Repository.Insert(digitalWallet);
         await _unitOfWork.Commit();
 
-        return new ApiResponse<DigitalWalletResponse>(_mapper.Map<DigitalWalletResponse>(item));
+        return new ApiResponse<DigitalWalletResponse>(_mapper.Map<DigitalWalletResponse>(digitalWallet));
     }
 }
 
