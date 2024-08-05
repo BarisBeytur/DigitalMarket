@@ -28,8 +28,8 @@ namespace DigitalMarket.Api.Controllers
             return Ok(response);
         }
 
-        [HttpPost("AddProductToCart")]
-        public async Task<IActionResult> AddProductToCart([FromHeader] long userId, [FromBody]AddProductToCartRequest request)
+        [HttpPut("UpdateCart")]
+        public async Task<IActionResult> UpdateCart([FromHeader] long userId, [FromBody]AddProductToCartRequest request)
         {
             var command = new AddProductToCartCommand()
             {
@@ -41,10 +41,22 @@ namespace DigitalMarket.Api.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("DeleteCartItemByUserId")]
-        public async Task<IActionResult> DeleteCartItemByProductId([FromHeader] long userId)
+        [HttpDelete("DeleteCart")]
+        public async Task<IActionResult> DeleteCartByUserId([FromHeader] long userId)
         {
             var command = new DeleteCartCommand(userId);
+            var response = await _mediator.Send(command);
+            return Ok(response);
+        }
+
+        [HttpDelete("DeleteCartItemByProductId")]
+        public async Task<IActionResult> DeleteCartItemByProductId([FromHeader] long userId, long productId)
+        {
+            var command = new DeleteCartItemByProductId()
+            {
+                UserId = userId,
+                ProductId = productId
+            };
             var response = await _mediator.Send(command);
             return Ok(response);
         }

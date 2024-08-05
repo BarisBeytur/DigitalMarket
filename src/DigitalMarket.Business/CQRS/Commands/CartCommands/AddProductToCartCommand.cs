@@ -44,12 +44,12 @@ public class AddProductToCartCommandHandler : IRequestHandler<AddProductToCartCo
                 new HashEntry(request.ProductId.ToString(), request.Quantity)
             });
 
-            return new ApiResponse("Cart successfully created");
+            return new ApiResponse(true, "Cart successfully created");
         }
         else
         {
             await db.HashIncrementAsync(cartKey, request.ProductId.ToString(), request.Quantity);
-            return new ApiResponse("Cart successfully updated");
+            return new ApiResponse(true, "Cart successfully updated");
         }
 
     }
