@@ -25,16 +25,17 @@ public class GetCartByUserIdQueryHandler : IRequestHandler<GetCartByUserIdQuery,
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly IUnitOfWork<User> _userUnitOfWork;
+    private readonly IUnitOfWork<Product> _productUnitOfWork;
 
-    public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis, IUnitOfWork<User> userUnitOfWork)
+    public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis, IUnitOfWork<User> userUnitOfWork, IUnitOfWork<Product> productUnitOfWork)
     {
         _redis = redis;
         _userUnitOfWork = userUnitOfWork;
+        _productUnitOfWork = productUnitOfWork;
     }
 
     public async Task<ApiResponse<IEnumerable<CartResponse>>> Handle(GetCartByUserIdQuery request, CancellationToken cancellationToken)
     {
-
         var user = await _userUnitOfWork.Repository.GetById(request.UserId);
 
         if (user == null)
@@ -45,14 +46,22 @@ public class GetCartByUserIdQueryHandler : IRequestHandler<GetCartByUserIdQuery,
         var cartKey = $"cart:{request.UserId}";
 
         var db = _redis.GetDatabase();
-
         var hashEntries = await db.HashGetAllAsync(cartKey);
 
-        var result = hashEntries.Select(x => new CartResponse
+        var result = new List<CartResponse>();
+
+        foreach (var entry in hashEntries)
         {
-            Quantity = int.Parse(x.Value.ToString(), CultureInfo.InvariantCulture),
-            ProductId = long.Parse(x.Name.ToString(), CultureInfo.InvariantCulture)
-        }).ToList();
+            var productId = long.Parse(entry.Name.ToString(), CultureInfo.InvariantCulture);
+            var product = await _productUnitOfWork.Repository.GetById(productId);
+
+            result.Add(new CartResponse
+            {
+                ProductId = productId,
+                ProductName = product?.Name ?? "Unknown", // Provide a default name if product is not found
+                Quantity = int.Parse(entry.Value.ToString(), CultureInfo.InvariantCulture),
+            });
+        }
 
         return new ApiResponse<IEnumerable<CartResponse>>(result);
     }
