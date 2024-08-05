@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DigitalMarket.Base.Enums;
 using DigitalMarket.Base.Response;
+using DigitalMarket.Business.CQRS.Commands.DigitalWalletCommands;
 using DigitalMarket.Business.CQRS.Commands.ProductCommands;
 using DigitalMarket.Business.CQRS.Queries.CartQueries;
 using DigitalMarket.Business.CQRS.Queries.ProductQueries;
@@ -62,20 +63,18 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             totalAmountAfterCouponApplied = await ApplyCouponCode(totalAmount, request.OrderRequest.CouponCode);
         }
 
-        // siparis olustugunda userin digital walletindaki point balance degerine satin alinan urunlerin point balance yuzdeleri kadar ekleme yapilacak
+        // todo: bir sonraki sipariste kullanilabilecek point balance hesaplanacak
 
-        // bir sonraki sipariste kullanilabilecek point balance hesaplanacak
+        // todo: siparis verildikten sonra sepet temizlenecek
 
         var order = _mapper.Map<Order>(request.OrderRequest);
-
         order.BasketAmount = totalAmount;
         order.TotalAmount = totalAmountAfterCouponApplied;
         order.Status = Convert.ToInt16(Enums.OrderStatus.Approved);
         order.CouponAmount = totalAmount - totalAmountAfterCouponApplied;
-        //order.PointAmount = 
+        order.PointAmount = await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId);
 
         await _orderUnitOfWork.Repository.Insert(order);
-
         await _orderUnitOfWork.CommitWithTransaction();
 
         await DecreaseStockCounts(cartItems.Data);
@@ -117,5 +116,25 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             product.Data.StockCount -= item.Quantity;
             await _mediator.Send(new UpdateProductCommand(item.ProductId, _mapper.Map<ProductRequest>(product.Data)));
         }
+    }
+
+    private async Task<decimal> AddPointToDigitalWallet(IEnumerable<CartResponse> cartItems, long userId)
+    {
+        var totalPointAmount = 0m;
+
+        foreach (var item in cartItems)
+        {
+            var product = await _mediator.Send(new GetProductByIdQuery(item.ProductId));
+            var pointAmount = (product.Data.Price * item.Quantity) * (product.Data.PointPercentage / 100);
+
+            if (pointAmount > product.Data.MaxPoint)
+            {
+                pointAmount = product.Data.MaxPoint;
+            }
+
+            await _mediator.Send(new AddPointToDigitalWalletCommand(userId, pointAmount));
+            totalPointAmount += pointAmount;
+        }
+        return totalPointAmount;
     }
 }

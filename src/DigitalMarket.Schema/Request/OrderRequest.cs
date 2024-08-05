@@ -7,6 +7,5 @@ namespace DigitalMarket.Schema.Request
     {
         public long UserId { get; set; }
         public string? CouponCode { get; set; }
-        public bool IsActive { get; set; }
     }
 }
