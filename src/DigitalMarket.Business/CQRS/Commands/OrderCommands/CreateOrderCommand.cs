@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using DigitalMarket.Base.Enums;
 using DigitalMarket.Base.Response;
+using DigitalMarket.Business.CQRS.Commands.ProductCommands;
 using DigitalMarket.Business.CQRS.Queries.CartQueries;
+using DigitalMarket.Business.CQRS.Queries.ProductQueries;
+using DigitalMarket.Business.CQRS.Queries.UserQueries;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -26,16 +28,14 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 
     private readonly IUnitOfWork<Order> _orderUnitOfWork;
     private readonly IUnitOfWork<Coupon> _couponUnitOfWork;
-    private readonly IUnitOfWork<User> _userUnitOfWork;
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
 
 
-    public CreateOrderCommandHandler(IUnitOfWork<Order> unitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork, IUnitOfWork<User> userUnitOfWork)
+    public CreateOrderCommandHandler(IUnitOfWork<Order> orderUnitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork)
     {
-        _orderUnitOfWork = unitOfWork;
+        _orderUnitOfWork = orderUnitOfWork;
         _couponUnitOfWork = couponUnitOfWork;
-        _userUnitOfWork = userUnitOfWork;
 
         _mapper = mapper;
         _mediator = mediator;
@@ -76,6 +76,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 
         await _orderUnitOfWork.Commit();
 
+        await DecreaseStockCounts(cartItems.Data);
+
         return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(order));
     }
 
@@ -86,8 +88,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 
     private async Task<bool> CheckUser(long userId)
     {
-        var user = await _userUnitOfWork.Repository.GetById(userId);
-        if (user == null)
+        var user = await _mediator.Send(new GetUserByIdQuery(userId));
+        if (user.Data == null)
         {
             return false;
         }
@@ -103,5 +105,15 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             totalAmount -= coupon?.Discount ?? 0;
         }
         return totalAmount;
+    }
+
+    private async Task DecreaseStockCounts(IEnumerable<CartResponse> cartItems)
+    {
+        foreach (var item in cartItems)
+        {
+            var product = await _mediator.Send(new GetProductByIdQuery(item.ProductId));
+            product.Data.StockCount -= item.Quantity;
+            await _mediator.Send(new UpdateProductCommand(item.ProductId, _mapper.Map<ProductRequest>(product.Data)));
+        }
     }
 }

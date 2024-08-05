@@ -34,6 +34,7 @@ namespace DigitalMarket.Business.Infrastructure.Mapping.AutoMapper
 
             CreateMap<Product, ProductResponse>();
             CreateMap<ProductRequest, Product>();
+            CreateMap<ProductRequest, ProductResponse>().ReverseMap();
 
 
             CreateMap<ProductCategory, ProductCategoryResponse>();
