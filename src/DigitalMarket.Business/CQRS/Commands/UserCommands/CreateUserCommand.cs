@@ -37,7 +37,6 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ApiRe
     {
         var digitalWallet = new DigitalWallet
         {
-            Balance = 0m,
             PointBalance = 0m,
             IsActive = true,
             InsertDate = DateTime.Now,

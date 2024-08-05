@@ -62,7 +62,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             totalAmountAfterCouponApplied = await ApplyCouponCode(totalAmount, request.OrderRequest.CouponCode);
         }
 
-        // TODO: puan sistemi entegre edilecek
+        // siparis olustugunda userin digital walletindaki point balance degerine satin alinan urunlerin point balance yuzdeleri kadar ekleme yapilacak
+
+        // bir sonraki sipariste kullanilabilecek point balance hesaplanacak
 
         var order = _mapper.Map<Order>(request.OrderRequest);
 
@@ -74,7 +76,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 
         await _orderUnitOfWork.Repository.Insert(order);
 
-        await _orderUnitOfWork.Commit();
+        await _orderUnitOfWork.CommitWithTransaction();
 
         await DecreaseStockCounts(cartItems.Data);
 

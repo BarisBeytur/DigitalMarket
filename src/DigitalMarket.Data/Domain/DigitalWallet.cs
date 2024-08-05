@@ -7,7 +7,6 @@ namespace DigitalMarket.Data.Domain
     public class DigitalWallet : BaseEntity
     {
         public decimal? PointBalance { get; set; }
-        public decimal Balance { get; set; }
         public long UserId { get; set; }
         public virtual User User { get; set; }
     }

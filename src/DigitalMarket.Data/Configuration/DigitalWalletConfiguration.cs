@@ -18,11 +18,6 @@ namespace DigitalMarket.Data.Configuration
                 .IsRequired()
                 .HasMaxLength(50);
 
-            builder.Property(x => x.Balance)
-                .IsRequired()
-                .HasPrecision(18, 2)
-                .HasDefaultValue(0m);
-
             builder.Property(x => x.UserId)
                 .IsRequired();
 

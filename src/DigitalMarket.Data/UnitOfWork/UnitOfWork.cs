@@ -58,14 +58,23 @@ public class UnitOfWork<TEntity> : IDisposable, IUnitOfWork<TEntity> where TEnti
     }
 
 
-    /// <summary>
-    /// Disposes the context
-    /// </summary>
+    private bool disposed = false;
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposed)
+        {
+            if (disposing)
+            {
+                _context.Dispose();
+            }
+            disposed = true;
+        }
+    }
+
     public void Dispose()
     {
-        if (_context != null)
-        {
-            _context.Dispose();
-        }
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }   
