@@ -5,11 +5,6 @@ using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DigitalMarket.Business.CQRS.Commands.DigitalWalletCommands;
 

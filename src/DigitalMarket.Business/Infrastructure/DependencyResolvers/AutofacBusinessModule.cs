@@ -2,6 +2,7 @@
 using AutoMapper;
 using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
 using DigitalMarket.Business.Infrastructure.Mapping.AutoMapper;
+using DigitalMarket.Business.Services.PaymentService;
 using DigitalMarket.Data.Context;
 using DigitalMarket.Data.UnitOfWork;
 using FluentValidation;
@@ -20,6 +21,10 @@ namespace DigitalMarket.Business.Infrastructure.DependencyResolvers
             builder.RegisterGeneric(typeof(UnitOfWork<>))
                    .As(typeof(IUnitOfWork<>))
                    .InstancePerLifetimeScope();
+
+            //builder.RegisterType<IPaymentService>()
+            //       .As<PaymentService>()
+            //       .InstancePerLifetimeScope();
 
             // FluentValidation
             builder.RegisterAssemblyTypes(AppDomain.CurrentDomain.GetAssemblies())

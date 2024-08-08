@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using DigitalMarket.Base.Enums;
 using DigitalMarket.Base.Response;
+using DigitalMarket.Business.CQRS.Commands.CartCommands;
 using DigitalMarket.Business.CQRS.Commands.DigitalWalletCommands;
 using DigitalMarket.Business.CQRS.Commands.ProductCommands;
 using DigitalMarket.Business.CQRS.Queries.CartQueries;
+using DigitalMarket.Business.CQRS.Queries.DigitalWalletQueries;
 using DigitalMarket.Business.CQRS.Queries.ProductQueries;
 using DigitalMarket.Business.CQRS.Queries.UserQueries;
+using DigitalMarket.Business.Services.PaymentService;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
@@ -30,16 +33,18 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
     private readonly IUnitOfWork<Order> _orderUnitOfWork;
     private readonly IUnitOfWork<Coupon> _couponUnitOfWork;
     private readonly IMediator _mediator;
+    private readonly IPaymentService _paymentService;
     private readonly IMapper _mapper;
 
 
-    public CreateOrderCommandHandler(IUnitOfWork<Order> orderUnitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork)
+    public CreateOrderCommandHandler(IUnitOfWork<Order> orderUnitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork, IPaymentService paymentService)
     {
         _orderUnitOfWork = orderUnitOfWork;
         _couponUnitOfWork = couponUnitOfWork;
 
         _mapper = mapper;
         _mediator = mediator;
+        _paymentService = paymentService;
     }
 
     public async Task<ApiResponse<OrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -63,21 +68,27 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             totalAmountAfterCouponApplied = await ApplyCouponCode(totalAmount, request.OrderRequest.CouponCode);
         }
 
-        // todo: bir sonraki sipariste kullanilabilecek point balance hesaplanacak
+        var totalAmountAfterPointApplied = await ApplyPoint(request.OrderRequest.UserId, totalAmountAfterCouponApplied);
 
-        // todo: siparis verildikten sonra sepet temizlenecek
+        await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId);
 
         var order = _mapper.Map<Order>(request.OrderRequest);
+
         order.BasketAmount = totalAmount;
-        order.TotalAmount = totalAmountAfterCouponApplied;
+        order.TotalAmount = Convert.ToDecimal(totalAmountAfterPointApplied); 
         order.Status = Convert.ToInt16(Enums.OrderStatus.Approved);
         order.CouponAmount = totalAmount - totalAmountAfterCouponApplied;
-        order.PointAmount = await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId);
+        order.PointAmount = totalAmount - totalAmountAfterPointApplied; // sipariste kullanilan puan miktari
+
+        //await _paymentService.GetPayment(request.OrderRequest.UserId, request.PaymentRequest);
 
         await _orderUnitOfWork.Repository.Insert(order);
         await _orderUnitOfWork.CommitWithTransaction();
 
         await DecreaseStockCounts(cartItems.Data);
+
+        // deletes cart after order is created
+        await _mediator.Send(new DeleteCartCommand(request.OrderRequest.UserId));
 
         return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(order));
     }
@@ -136,5 +147,35 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             totalPointAmount += pointAmount;
         }
         return totalPointAmount;
+    }
+
+    private async Task<decimal?> ApplyPoint(long userId, decimal? totalAmount)
+    {
+
+        var digitalWallet = await _mediator.Send(new GetDigitalWalletByUserIdQuery(userId));
+
+        if (digitalWallet.Data.PointBalance > 0)
+        {
+            if (digitalWallet.Data.PointBalance >= totalAmount)
+            {
+                digitalWallet.Data.PointBalance -= totalAmount;
+                totalAmount = 0;
+            }
+            else
+            {
+                totalAmount -= digitalWallet.Data.PointBalance;
+                digitalWallet.Data.PointBalance = 0;
+            }
+
+            await _mediator.Send(new UpdateDigitalWalletCommand(digitalWallet.Data.Id, new DigitalWalletRequest
+            {
+                PointBalance = digitalWallet.Data.PointBalance,
+                UserId = userId
+            }));
+        }
+
+        return totalAmount;
+
+
     }
 }
