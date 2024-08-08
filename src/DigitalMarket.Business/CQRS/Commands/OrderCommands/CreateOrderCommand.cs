@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using DigitalMarket.Base.Enums;
 using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.CartCommands;
@@ -59,43 +60,53 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 
         var cartItems = await _mediator.Send(new GetCartByUserIdQuery(request.OrderRequest.UserId));
 
-        decimal totalAmount = CalculateTotalAmount(cartItems.Data);
+        TotalAmountResponse totalAmountResponse = await CalculateTotalAmount(request.OrderRequest.UserId, request.OrderRequest.CouponCode, cartItems.Data);
 
-        decimal totalAmountAfterCouponApplied = totalAmount;
+        decimal totalAmount = totalAmountResponse.totalAmountAfterPointApplied;
 
-        if (!string.IsNullOrEmpty(request.OrderRequest.CouponCode))
-        {
-            totalAmountAfterCouponApplied = await ApplyCouponCode(totalAmount, request.OrderRequest.CouponCode);
-        }
-
-        var totalAmountAfterPointApplied = await ApplyPoint(request.OrderRequest.UserId, totalAmountAfterCouponApplied);
-
-        await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId);
+        // fake payment servis olusturulacak
 
         var order = _mapper.Map<Order>(request.OrderRequest);
 
-        order.BasketAmount = totalAmount;
-        order.TotalAmount = Convert.ToDecimal(totalAmountAfterPointApplied); 
+        order.BasketAmount = totalAmountResponse.BasketAmount;
+        order.TotalAmount = totalAmountResponse.totalAmountAfterPointApplied;
         order.Status = Convert.ToInt16(Enums.OrderStatus.Approved);
-        order.CouponAmount = totalAmount - totalAmountAfterCouponApplied;
-        order.PointAmount = totalAmount - totalAmountAfterPointApplied; // sipariste kullanilan puan miktari
-
-        //await _paymentService.GetPayment(request.OrderRequest.UserId, request.PaymentRequest);
+        order.CouponAmount = totalAmountResponse.BasketAmount - totalAmountResponse.totalAmountAfterCouponApplied;
+        order.PointAmount = totalAmountResponse.totalAmountAfterCouponApplied - totalAmount;
 
         await _orderUnitOfWork.Repository.Insert(order);
         await _orderUnitOfWork.CommitWithTransaction();
 
         await DecreaseStockCounts(cartItems.Data);
+        await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId);
+
 
         // deletes cart after order is created
-        await _mediator.Send(new DeleteCartCommand(request.OrderRequest.UserId));
+        //await _mediator.Send(new DeleteCartCommand(request.OrderRequest.UserId));
 
         return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(order));
     }
 
-    private decimal CalculateTotalAmount(IEnumerable<CartResponse> cartItems)
+
+    private async Task<TotalAmountResponse> CalculateTotalAmount(long userId, string couponCode, IEnumerable<CartResponse> cartItems)
     {
-        return cartItems.Sum(item => item.Price * item.Quantity);
+        decimal totalAmount = cartItems.Sum(item => item.Price * item.Quantity);
+
+        decimal totalAmountAfterCouponApplied = totalAmount;
+
+        if (!string.IsNullOrEmpty(couponCode))
+        {
+            totalAmountAfterCouponApplied = await ApplyCouponCode(totalAmount, couponCode);
+        }
+
+        var totalAmountAfterPointApplied = await ApplyPoint(userId, totalAmountAfterCouponApplied);
+
+        return new TotalAmountResponse
+        {
+            BasketAmount = Convert.ToDecimal(totalAmount),
+            totalAmountAfterCouponApplied = totalAmountAfterCouponApplied,
+            totalAmountAfterPointApplied = Convert.ToDecimal(totalAmountAfterPointApplied)
+        };
     }
 
     private async Task<bool> CheckUser(long userId)
