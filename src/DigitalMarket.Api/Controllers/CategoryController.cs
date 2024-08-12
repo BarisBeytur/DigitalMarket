@@ -4,6 +4,7 @@ using DigitalMarket.Business.CQRS.Queries.CategoryQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DigitalMarket.Api.Controllers
@@ -21,6 +22,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "user")]
         public async Task<ApiResponse<IEnumerable<CategoryResponse>>> GetAll()
         {
             var response = await _mediator.Send(new GetAllCategoryQuery());

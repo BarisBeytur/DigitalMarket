@@ -107,12 +107,16 @@ public class AuthService : IAuthService
         };
 
         var newUserResponse = await userManager.CreateAsync(newUser, request.Password);
-        if (!newUserResponse.Succeeded)
+        if (newUserResponse.Succeeded)
+        {
+            await userManager.AddToRoleAsync(newUser, request.Role);
+        }
+        else
         {
             return new ApiResponse("Register Failed");
         }
 
-        
+
         digitalWallet.UserId = newUser.Id;
         _digitalWalletUnitOfWork.Repository.Update(digitalWallet);
         await _digitalWalletUnitOfWork.CommitWithTransaction();
@@ -122,7 +126,7 @@ public class AuthService : IAuthService
 
     public async Task<string> GenerateToken(ApplicationUser user)
     {
-        Claim[] claims = GetClaims(user);
+        Claim[] claims = await GetClaims(user);
         var secret = Encoding.ASCII.GetBytes(jwtConfig.Secret);
 
         JwtSecurityToken jwtToken = new JwtSecurityToken(
@@ -138,17 +142,25 @@ public class AuthService : IAuthService
         return token;
     }
 
-    private Claim[] GetClaims(ApplicationUser user)
+    private async Task<Claim[]> GetClaims(ApplicationUser user)
     {
+        var userRoles = await userManager.GetRolesAsync(user);
+
         List<Claim> claims = new List<Claim>()
+    {
+        new Claim("UserName", user.UserName),
+        new Claim("UserId", user.Id.ToString()),
+        new Claim("Email", user.Email),
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(ClaimTypes.Email, user.Email),
+    };
+
+        // Rolleri ekle
+        foreach (var role in userRoles)
         {
-            new Claim("UserName", user.UserName),
-            new Claim("UserId", user.Id.ToString()),
-            new Claim("Email", user.Email),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Email, user.Email),
-        };
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
         return claims.ToArray();
     }

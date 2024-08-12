@@ -26,12 +26,24 @@ var builder = WebApplication.CreateBuilder(args);
 var jwtConfig = builder.Configuration.GetSection("JwtConfig").Get<JwtConfig>();
 builder.Services.AddSingleton(jwtConfig);
 
+var connectionString = builder.Configuration.GetConnectionString("DigitalMarketDbConnection");
+builder.Services.AddDbContext<DigitalMarketDbContext>(options => options.UseSqlServer(connectionString));
+
+
+builder.Services.AddControllers()
+    .AddFluentValidation(x =>
+    {
+        x.RegisterValidatorsFromAssemblyContaining<BaseValidator>();
+    });
+
+
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.WriteIndented = true;
     options.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
+
 
 builder.Services.AddScoped<ISessionContext>(provider =>
 {
@@ -42,34 +54,22 @@ builder.Services.AddScoped<ISessionContext>(provider =>
     return sessionContext;
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DigitalMarketDbConnection");
-builder.Services.AddDbContext<DigitalMarketDbContext>(options => options.UseSqlServer(connectionString));
-
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<long>>(options =>
-        {
-            options.Password.RequireDigit = false;
-            options.Password.RequiredLength = 5;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequiredUniqueChars = 1;
-        })
-.AddEntityFrameworkStores<DigitalMarketDbContext>()
-.AddDefaultTokenProviders();
+builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
 
 builder.Services.AddTransient<IAuthService, AuthService>();
 
-builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
-
-
-
-
-builder.Services.AddControllers()
-    .AddFluentValidation(x =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<long>>(options =>
 {
-    x.RegisterValidatorsFromAssemblyContaining<BaseValidator>();
-});
-
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 5;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredUniqueChars = 1;
+})
+.AddRoles<IdentityRole<long>>()
+.AddEntityFrameworkStores<DigitalMarketDbContext>()
+.AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(x =>
 {
@@ -131,6 +131,12 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    await RoleService.CreateRoles(serviceProvider);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -138,6 +144,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
