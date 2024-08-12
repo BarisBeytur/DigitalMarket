@@ -1,10 +1,16 @@
+PROJE POSTMAN DÖKÜMANTASYONU : https://documenter.getpostman.com/view/28601501/2sA3s4mVqH
 
-# Proje Kurulumu ve Calistirma
+Patika & Papara .NET Bootcamp Final Project
 
-## Gereksinimler
+Digital Market 
+
+
+Proje Kurulumu ve Calistirma
+
+Gereksinimler
 - Docker ve Docker Compose yuklu olmali.
 
-## Redis'i Baslatma
+Redis'i Baslatma
 1 - Projeyi klonladiktan sonra, Docker Compose kullanarak Redis'i baslatin:
 
 VS uzerinden gelistirici powershell acildiktan sonra: 
@@ -20,6 +26,8 @@ Update-Database -StartupProject DigitalMarket.Api -Project DigitalMarket.Data  -
 
 5 - Projeyi calistirabilirsiniz.
 
+
+
 Project Tech Stack : 
 .NET Core 
 Microsoft SQL Server
@@ -33,11 +41,14 @@ Redis
 Docker
 MediatR
 
+
+
 Project Architecture : 
 CQRS
 Mediator
 Generic Repository
 Unit Of Work
+
 
 
 Database Migration Command:
@@ -47,7 +58,8 @@ Database Update Command:
 Update-Database -StartupProject DigitalMarket.Api -Project DigitalMarket.Data
 
 
-## EKSTRA
+
+EKSTRA
 
 Servisleri Durdurmak icin:
 docker-compose down
@@ -57,5 +69,4 @@ docker-compose ps
 
 
 
-PROJE POSTMAN DÖKÜMANTASYONU : https://documenter.getpostman.com/view/28601501/2sA3s4mVqH
 
