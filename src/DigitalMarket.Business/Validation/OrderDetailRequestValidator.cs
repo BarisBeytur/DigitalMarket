@@ -40,13 +40,6 @@ namespace DigitalMarket.Business.Validation
                 .GreaterThan(0)
                 .WithMessage("Price must be greater than 0");
 
-            RuleFor(x => x.PointAmount)
-                .NotEmpty()
-                .WithMessage("PointAmount is required")
-                .NotNull()
-                .WithMessage("PointAmount is required")
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("PointAmount must be greater than or equal 0");
         }
     }
 }

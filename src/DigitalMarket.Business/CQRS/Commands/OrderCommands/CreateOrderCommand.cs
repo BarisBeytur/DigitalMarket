@@ -4,6 +4,7 @@ using DigitalMarket.Base.Enums;
 using DigitalMarket.Base.Response;
 using DigitalMarket.Business.CQRS.Commands.CartCommands;
 using DigitalMarket.Business.CQRS.Commands.DigitalWalletCommands;
+using DigitalMarket.Business.CQRS.Commands.OrderDetailCommands;
 using DigitalMarket.Business.CQRS.Commands.ProductCommands;
 using DigitalMarket.Business.CQRS.Queries.CartQueries;
 using DigitalMarket.Business.CQRS.Queries.DigitalWalletQueries;
@@ -40,7 +41,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
     private readonly IMapper _mapper;
 
 
-    public CreateOrderCommandHandler(IUnitOfWork<Order> orderUnitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork, IPaymentService paymentService)
+    public CreateOrderCommandHandler(IUnitOfWork<Order> orderUnitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork, IPaymentService paymentService, IUnitOfWork<OrderDetail> orderDetailUnitOfWork)
     {
         _orderUnitOfWork = orderUnitOfWork;
         _couponUnitOfWork = couponUnitOfWork;
@@ -84,6 +85,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             await DecreaseStockCounts(cartItems.Data);
             await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId, totalAmount, originalTotalAmount);
             await _mediator.Send(new DeleteCartCommand(request.OrderRequest.UserId));
+            await CreateOrderDetails(cartItems.Data,order.Id);
+         
             return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(order));
         }
         else
@@ -220,7 +223,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             var product = await _mediator.Send(new GetProductByIdQuery(item.ProductId));
 
-            if(product.Data.StockCount < item.Quantity)
+            if (product.Data.StockCount < item.Quantity)
             {
                 throw new Exception($"{product.Data.Name} is out of stock");
             }
@@ -231,5 +234,20 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
     {
         Random random = new Random();
         return random.Next(100000000, 999999999).ToString();
+    }
+
+    private async Task CreateOrderDetails(IEnumerable<CartResponse> cartItems, long orderId)
+    {
+        foreach (var item in cartItems)
+        {
+            await _mediator.Send(new CreateOrderDetailCommand(new OrderDetailRequest
+            {
+                OrderId = orderId,
+                Price = item.Price,
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+            }));
+        }
+
     }
 }

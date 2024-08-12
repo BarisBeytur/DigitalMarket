@@ -27,11 +27,6 @@ namespace DigitalMarket.Data.Configuration
                 .HasPrecision(18, 2)
                 .HasDefaultValue(0m);
 
-            builder.Property(e => e.PointAmount)
-                .IsRequired()
-                .HasPrecision(18, 2)
-                .HasDefaultValue(0m);
-
             builder.HasOne(d => d.Order)
                 .WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
