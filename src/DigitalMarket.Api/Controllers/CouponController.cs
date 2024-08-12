@@ -4,6 +4,7 @@ using DigitalMarket.Business.CQRS.Queries.CouponQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DigitalMarket.Api.Controllers;
@@ -20,6 +21,7 @@ public class CouponController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "admin")]
     public async Task<ApiResponse<IEnumerable<CouponResponse>>> GetAll()
     {
         var response = await _mediator.Send(new GetAllCouponQuery());
@@ -27,6 +29,7 @@ public class CouponController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "admin")]
     public async Task<ApiResponse<CouponResponse>> Get(long id)
     {
         var response = await _mediator.Send(new GetCouponByIdQuery(id));
@@ -34,6 +37,7 @@ public class CouponController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin")]
     public async Task<ApiResponse<CouponResponse>> Post(CouponRequest couponRequest)
     {
         var response = await _mediator.Send(new CreateCouponCommand(couponRequest));
@@ -41,6 +45,7 @@ public class CouponController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize(Roles = "admin")]
     public async Task<ApiResponse> Delete(long id)
     {
         var response = await _mediator.Send(new DeleteCouponCommand { Id = id });
@@ -48,6 +53,7 @@ public class CouponController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin")]
     public async Task<ApiResponse<CouponResponse>> Put(long id, [FromBody] CouponRequest couponRequest)
     {
         var response = await _mediator.Send(new UpdateCouponCommand(id, couponRequest));

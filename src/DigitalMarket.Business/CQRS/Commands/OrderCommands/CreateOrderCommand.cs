@@ -9,13 +9,13 @@ using DigitalMarket.Business.CQRS.Commands.ProductCommands;
 using DigitalMarket.Business.CQRS.Queries.CartQueries;
 using DigitalMarket.Business.CQRS.Queries.DigitalWalletQueries;
 using DigitalMarket.Business.CQRS.Queries.ProductQueries;
-using DigitalMarket.Business.CQRS.Queries.UserQueries;
 using DigitalMarket.Business.Services.PaymentService;
 using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 
 namespace DigitalMarket.Business.CQRS.Commands.OrderCommands;
 
@@ -36,19 +36,24 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 
     private readonly IUnitOfWork<Order> _orderUnitOfWork;
     private readonly IUnitOfWork<Coupon> _couponUnitOfWork;
+    private readonly IUnitOfWork<DigitalWallet> _digitalWalletUnitOfWork;
     private readonly IMediator _mediator;
     private readonly IPaymentService _paymentService;
     private readonly IMapper _mapper;
+    private readonly UserManager<ApplicationUser> _userManager;
 
 
-    public CreateOrderCommandHandler(IUnitOfWork<Order> orderUnitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork, IPaymentService paymentService, IUnitOfWork<OrderDetail> orderDetailUnitOfWork)
+    public CreateOrderCommandHandler(IUnitOfWork<Order> orderUnitOfWork, IMapper mapper, IMediator mediator, IUnitOfWork<Coupon> couponUnitOfWork, IPaymentService paymentService, IUnitOfWork<OrderDetail> orderDetailUnitOfWork, UserManager<ApplicationUser> userManager, IUnitOfWork<DigitalWallet> digitalWalletUnitOfWork)
     {
         _orderUnitOfWork = orderUnitOfWork;
         _couponUnitOfWork = couponUnitOfWork;
+        _digitalWalletUnitOfWork = digitalWalletUnitOfWork;
+
 
         _mapper = mapper;
         _mediator = mediator;
         _paymentService = paymentService;
+        _userManager = userManager;
     }
 
     public async Task<ApiResponse<OrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -81,7 +86,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             await _orderUnitOfWork.Repository.Insert(order);
             await _orderUnitOfWork.CommitWithTransaction();
 
-            await DecreasePoint(request.OrderRequest.UserId, totalAmountResponse);
+            await DecreasePoint(request.OrderRequest.UserId, order.PointAmount);
             await DecreaseStockCounts(cartItems.Data);
             await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId, totalAmount, originalTotalAmount);
             await _mediator.Send(new DeleteCartCommand(request.OrderRequest.UserId));
@@ -119,8 +124,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
 
     private async Task<bool> CheckUser(long userId)
     {
-        var user = await _mediator.Send(new GetUserByIdQuery(userId));
-        if (user.Data == null)
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
         {
             return false;
         }
@@ -204,17 +209,16 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         return response;
     }
 
-    private async Task DecreasePoint(long userId, TotalAmountResponse totalAmountResponse)
+    private async Task DecreasePoint(long userId, decimal? pointAmount)
     {
+        // Retrieve the DigitalWallet entity
         var digitalWallet = await _mediator.Send(new GetDigitalWalletByUserIdQuery(userId));
 
-        ApplyPointResponse applyPointResponse = await ApplyPoint(userId, totalAmountResponse.totalAmountAfterCouponApplied);
+        // Update the PointBalance directly on the retrieved entity
+        digitalWallet.Data.PointBalance -= pointAmount;
 
-        await _mediator.Send(new UpdateDigitalWalletCommand(digitalWallet.Data.Id, new DigitalWalletRequest
-        {
-            PointBalance = applyPointResponse.PointBalance,
-            UserId = userId
-        }));
+        // Update the DigitalWallet entity in the database
+        await _mediator.Send(new UpdateDigitalWalletCommand(digitalWallet.Data.Id, _mapper.Map<DigitalWalletRequest>(digitalWallet.Data)));
     }
 
     private async Task CheckStock(IEnumerable<CartResponse> cartItems)

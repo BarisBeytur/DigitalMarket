@@ -5,6 +5,7 @@ using DigitalMarket.Business.CQRS.Queries.ProductProductCategoryQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DigitalMarket.Api.Controllers
@@ -21,6 +22,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<IEnumerable<ProductCategoryResponse>>> GetAll()
         {
             var response = await _mediator.Send(new GetAllProductCategoryQuery());
@@ -28,6 +30,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<ProductCategoryResponse>> Get(long id)
         {
             var response = await _mediator.Send(new GetProductCategoryByIdQuery(id));
@@ -35,6 +38,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<ProductCategoryResponse>> Post(ProductCategoryRequest couponRequest)
         {
             var response = await _mediator.Send(new CreateProductCategoryCommand(couponRequest));
@@ -42,6 +46,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse> Delete(long id)
         {
             var response = await _mediator.Send(new DeleteProductCategoryCommand { Id = id });
@@ -49,6 +54,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<ProductCategoryResponse>> Put(long id, [FromBody] ProductCategoryRequest couponRequest)
         {
             var response = await _mediator.Send(new UpdateProductCategoryCommand(id, couponRequest));

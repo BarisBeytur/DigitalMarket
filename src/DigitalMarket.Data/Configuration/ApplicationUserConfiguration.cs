@@ -16,6 +16,10 @@ namespace DigitalMarket.Data.Configuration
             builder.Property(x => x.Name).IsRequired().HasMaxLength(150);
             builder.Property(x => x.Surname).IsRequired().HasMaxLength(150);
 
+            builder.HasOne(x => x.DigitalWallet)
+                .WithOne(x => x.User)
+                .HasForeignKey<ApplicationUser>(x => x.DigitalWalletId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

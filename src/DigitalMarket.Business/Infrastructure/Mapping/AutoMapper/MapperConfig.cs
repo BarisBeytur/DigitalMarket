@@ -21,7 +21,7 @@ namespace DigitalMarket.Business.Infrastructure.Mapping.AutoMapper
             CreateMap<Coupon, CouponResponse>();
             CreateMap<CouponRequest, Coupon>();
 
-            CreateMap<DigitalWallet, DigitalWalletResponse>();
+            CreateMap<DigitalWallet, DigitalWalletResponse>().ReverseMap();
             CreateMap<DigitalWalletRequest, DigitalWallet>();
             CreateMap<DigitalWallet, PointBalanceResponse>().ReverseMap();
             CreateMap<DigitalWalletResponse, DigitalWalletRequest>().ReverseMap();
@@ -43,8 +43,8 @@ namespace DigitalMarket.Business.Infrastructure.Mapping.AutoMapper
             CreateMap<ProductCategory, ProductWithCategoryResponse>();
 
 
-            CreateMap<User, UserResponse>();
-            CreateMap<UserRequest, User>();
+            CreateMap<ApplicationUser, UserResponse>();
+            CreateMap<UserRequest, ApplicationUser>();
 
 
         }

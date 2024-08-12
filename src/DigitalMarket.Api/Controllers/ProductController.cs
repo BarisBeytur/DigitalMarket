@@ -4,6 +4,7 @@ using DigitalMarket.Business.CQRS.Queries.ProductQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +22,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<IEnumerable<ProductResponse>>> GetAll()
         {
             var response = await _mediator.Send(new GetAllProductQuery());
@@ -28,6 +30,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet("GetByCategoryId")]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<List<ProductWithCategoryResponse>>> GetByCategory(long categoryId)
         {
             var response = await _mediator.Send(new GetProductByCategoryQuery { CategoryId = categoryId });
@@ -35,6 +38,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<ProductResponse>> Get(long id)
         {
             var response = await _mediator.Send(new GetProductByIdQuery(id));
@@ -42,6 +46,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<ProductResponse>> Post(ProductRequest couponRequest)
         {
             var response = await _mediator.Send(new CreateProductCommand(couponRequest));
@@ -49,6 +54,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse> Delete(long id)
         {
             var response = await _mediator.Send(new DeleteProductCommand { Id = id });
@@ -56,6 +62,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<ProductResponse>> Put(long id, [FromBody] ProductRequest couponRequest)
         {
             var response = await _mediator.Send(new UpdateProductCommand(id, couponRequest));

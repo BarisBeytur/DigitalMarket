@@ -40,8 +40,9 @@ public class UpdateDigitalWalletCommandHandler : IRequestHandler<UpdateDigitalWa
         if (item == null)
             return new ApiResponse<DigitalWalletResponse>("Item not found");
      
-        _mapper.Map(request.Request, item);
-
+        
+        item.PointBalance = request.Request.PointBalance;
+        item.UserId = request.Request.UserId;
         _unitOfWork.Repository.Update(item);
         await _unitOfWork.Commit();
 

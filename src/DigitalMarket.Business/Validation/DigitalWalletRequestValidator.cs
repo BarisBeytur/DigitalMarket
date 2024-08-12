@@ -16,14 +16,6 @@ namespace DigitalMarket.Business.Validation
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("PointBalance must be greater than or equal to 0");
 
-
-            RuleFor(x => x.UserId)
-                .NotNull()
-                .WithMessage("UserId is required")
-                .NotEmpty()
-                .WithMessage("UserId is required")
-                .GreaterThan(0)
-                .WithMessage("UserId must be greater than 0");
         }
     }
 }

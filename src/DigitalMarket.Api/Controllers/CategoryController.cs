@@ -22,7 +22,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "user")]
+        [Authorize(Roles = "user,admin")]
         public async Task<ApiResponse<IEnumerable<CategoryResponse>>> GetAll()
         {
             var response = await _mediator.Send(new GetAllCategoryQuery());
@@ -30,6 +30,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "user,admin")]
         public async Task<ApiResponse<CategoryResponse>> Get(long id)
         {
             var response = await _mediator.Send(new GetCategoryByIdQuery(id));
@@ -37,6 +38,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<CategoryResponse>> Post(CategoryRequest categoryRequest)
         {
             var response = await _mediator.Send(new CreateCategoryCommand(categoryRequest));
@@ -44,6 +46,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse> Delete(long id)
         {
             var response = await _mediator.Send(new DeleteCategoryCommand { Id = id });
@@ -51,6 +54,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<CategoryResponse>> Put(long id, [FromBody] CategoryRequest categoryRequest)
         {
             var response = await _mediator.Send(new UpdateCategoryCommand(id, categoryRequest));

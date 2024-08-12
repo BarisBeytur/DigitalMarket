@@ -22,7 +22,6 @@ public class DigitalMarketDbContext : IdentityDbContext<ApplicationUser, Identit
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductCategory> ProductCategories { get; set; }
-    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,7 +32,6 @@ public class DigitalMarketDbContext : IdentityDbContext<ApplicationUser, Identit
         modelBuilder.ApplyConfiguration(new OrderDetailConfiguration());
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
         modelBuilder.ApplyConfiguration(new ProductCategoryConfiguration());
-        modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
 
         base.OnModelCreating(modelBuilder);

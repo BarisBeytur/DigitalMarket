@@ -3,8 +3,10 @@ using DigitalMarket.Business.CQRS.Commands.CartCommands;
 using DigitalMarket.Business.CQRS.Queries.CartQueries;
 using DigitalMarket.Schema.Request;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using System.Security.Claims;
 
 namespace DigitalMarket.Api.Controllers
 {
@@ -21,16 +23,32 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCartByUserId([FromHeader] long userId)
+        [Authorize(Roles = "user,admin")]
+        public async Task<IActionResult> GetCartByUserId()
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token");
+            }
+            long userId = long.Parse(userIdClaim.Value);
+
             var command = new GetCartByUserIdQuery(userId);
             var response = await _mediator.Send(command);
             return Ok(response);
         }
 
         [HttpPost("SetCart")]
-        public async Task<IActionResult> UpdateCart([FromHeader] long userId, [FromBody]AddProductToCartRequest request)
+        [Authorize(Roles = "user,admin")]
+        public async Task<IActionResult> SetCart([FromBody]AddProductToCartRequest request)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token");
+            }
+            long userId = long.Parse(userIdClaim.Value);
+
             var command = new AddProductToCartCommand()
             {
                 UserId = userId,
@@ -42,16 +60,32 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpDelete("DeleteCart")]
-        public async Task<IActionResult> DeleteCartByUserId([FromHeader] long userId)
+        [Authorize(Roles = "user,admin")]
+        public async Task<IActionResult> DeleteCartByUserId()
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token");
+            }
+            long userId = long.Parse(userIdClaim.Value);
+
             var command = new DeleteCartCommand(userId);
             var response = await _mediator.Send(command);
             return Ok(response);
         }
 
         [HttpDelete("DeleteCartItemByProductId")]
-        public async Task<IActionResult> DeleteCartItemByProductId([FromHeader] long userId, long productId)
+        [Authorize(Roles = "user,admin")]
+        public async Task<IActionResult> DeleteCartItemByProductId(long productId)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token");
+            }
+            long userId = long.Parse(userIdClaim.Value);
+
             var command = new DeleteCartItemByProductId()
             {
                 UserId = userId,

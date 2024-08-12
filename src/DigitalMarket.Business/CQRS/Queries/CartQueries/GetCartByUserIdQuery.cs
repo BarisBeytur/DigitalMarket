@@ -3,6 +3,7 @@ using DigitalMarket.Data.Domain;
 using DigitalMarket.Data.UnitOfWork;
 using DigitalMarket.Schema.Response;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using StackExchange.Redis;
 using System.Globalization;
 
@@ -21,21 +22,21 @@ public class GetCartByUserIdQuery : IRequest<ApiResponse<IEnumerable<CartRespons
 public class GetCartByUserIdQueryHandler : IRequestHandler<GetCartByUserIdQuery, ApiResponse<IEnumerable<CartResponse>>>
 {
     private readonly IConnectionMultiplexer _redis;
-    private readonly IUnitOfWork<User> _userUnitOfWork;
+    private readonly UserManager<ApplicationUser> userManager;
     private readonly IUnitOfWork<Product> _productUnitOfWork;
 
-    public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis, IUnitOfWork<User> userUnitOfWork, IUnitOfWork<Product> productUnitOfWork)
+    public GetCartByUserIdQueryHandler(IConnectionMultiplexer redis, IUnitOfWork<Product> productUnitOfWork, UserManager<ApplicationUser> userManager)
     {
         _redis = redis;
-        _userUnitOfWork = userUnitOfWork;
         _productUnitOfWork = productUnitOfWork;
+        this.userManager = userManager;
     }
 
     public async Task<ApiResponse<IEnumerable<CartResponse>>> Handle(GetCartByUserIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userUnitOfWork.Repository.GetById(request.UserId);
+        var user = await userManager.GetUserIdAsync(new ApplicationUser { Id  = request.UserId});
 
-        if (user == null)
+        if (string.IsNullOrEmpty(user))
         {
             return new ApiResponse<IEnumerable<CartResponse>>("User not found");
         }

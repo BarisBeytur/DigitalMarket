@@ -4,6 +4,7 @@ using DigitalMarket.Business.CQRS.Queries.OrderDetailQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +22,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<IEnumerable<OrderDetailResponse>>> GetAll()
         {
             var response = await _mediator.Send(new GetAllOrderDetailQuery());
@@ -28,6 +30,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet("Order/{orderId}")]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<List<OrderDetailResponse>>> GetByOrderId(long orderId)
         {
             var response = await _mediator.Send(new GetOrderDetailByOrderIdQuery { OrderId = orderId });
@@ -35,6 +38,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<OrderDetailResponse>> Get(long id)
         {
             var response = await _mediator.Send(new GetOrderDetailByIdQuery(id));
@@ -43,6 +47,7 @@ namespace DigitalMarket.Api.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "admin,user")]
         public async Task<ApiResponse<OrderDetailResponse>> Post(OrderDetailRequest couponRequest)
         {
             var response = await _mediator.Send(new CreateOrderDetailCommand(couponRequest));
@@ -50,6 +55,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse> Delete(long id)
         {
             var response = await _mediator.Send(new DeleteOrderDetailCommand { Id = id });
@@ -57,6 +63,7 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ApiResponse<OrderDetailResponse>> Put(long id, [FromBody] OrderDetailRequest couponRequest)
         {
             var response = await _mediator.Send(new UpdateOrderDetailCommand(id, couponRequest));
