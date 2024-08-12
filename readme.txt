@@ -45,3 +45,5 @@ docker-compose ps
 
 
 
+PROJE POSTMAN DÖKÜMANTASYONU : https://documenter.getpostman.com/view/28601501/2sA3s4mVqH
+
