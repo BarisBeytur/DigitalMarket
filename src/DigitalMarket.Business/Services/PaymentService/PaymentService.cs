@@ -16,6 +16,7 @@ namespace DigitalMarket.Business.Services.PaymentService
 
         public async Task<ApiResponse<bool>> GetPayment(long userId, PaymentRequest request)
         {
+            // odeme basariyla alindi.
             return new ApiResponse<bool>(true);
         }
     }

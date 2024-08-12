@@ -21,10 +21,12 @@ namespace DigitalMarket.Business.CQRS.Commands.OrderCommands;
 public class CreateOrderCommand : IRequest<ApiResponse<OrderResponse>>
 {
     public OrderRequest OrderRequest { get; set; }
+    public PaymentRequest PaymentRequest { get; set; }
 
-    public CreateOrderCommand(OrderRequest orderRequest)
+    public CreateOrderCommand(OrderRequest orderRequest, PaymentRequest paymentRequest)
     {
         OrderRequest = orderRequest;
+        PaymentRequest = paymentRequest;
     }
 }
 
@@ -52,41 +54,44 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
     {
 
         var isUserExists = await CheckUser(request.OrderRequest.UserId);
-
         if (!isUserExists)
-        {
             return new ApiResponse<OrderResponse>("User not found");
-        }
 
         var cartItems = await _mediator.Send(new GetCartByUserIdQuery(request.OrderRequest.UserId));
-
+        await CheckStock(cartItems.Data);
         TotalAmountResponse totalAmountResponse = await CalculateTotalAmount(request.OrderRequest.UserId, request.OrderRequest.CouponCode, cartItems.Data);
-
         decimal totalAmount = totalAmountResponse.totalAmountAfterPointApplied;
-
-        // fake payment servis olusturulacak
+        decimal originalTotalAmount = totalAmountResponse.BasketAmount;
 
         var order = _mapper.Map<Order>(request.OrderRequest);
 
-        order.BasketAmount = totalAmountResponse.BasketAmount;
+        order.OrderNumber = GenerateOrderNumber();
+        order.BasketAmount = originalTotalAmount;
         order.TotalAmount = totalAmountResponse.totalAmountAfterPointApplied;
         order.Status = Convert.ToInt16(Enums.OrderStatus.Approved);
-        order.CouponAmount = totalAmountResponse.BasketAmount - totalAmountResponse.totalAmountAfterCouponApplied;
+        order.CouponAmount = originalTotalAmount - totalAmountResponse.totalAmountAfterCouponApplied;
         order.PointAmount = totalAmountResponse.totalAmountAfterCouponApplied - totalAmount;
 
-        await _orderUnitOfWork.Repository.Insert(order);
-        await _orderUnitOfWork.CommitWithTransaction();
+        var paymentResult = await _paymentService.GetPayment(request.OrderRequest.UserId, request.PaymentRequest);
 
-        await DecreaseStockCounts(cartItems.Data);
-        await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId);
+        if (paymentResult.IsSuccess)
+        {
+            order.Status = Convert.ToInt16(Enums.OrderStatus.Delivered);
+            await _orderUnitOfWork.Repository.Insert(order);
+            await _orderUnitOfWork.CommitWithTransaction();
 
+            await DecreasePoint(request.OrderRequest.UserId, totalAmountResponse);
+            await DecreaseStockCounts(cartItems.Data);
+            await AddPointToDigitalWallet(cartItems.Data, request.OrderRequest.UserId, totalAmount, originalTotalAmount);
+            await _mediator.Send(new DeleteCartCommand(request.OrderRequest.UserId));
+            return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(order));
+        }
+        else
+        {
+            return new ApiResponse<OrderResponse>("Payment failed");
+        }
 
-        // deletes cart after order is created
-        //await _mediator.Send(new DeleteCartCommand(request.OrderRequest.UserId));
-
-        return new ApiResponse<OrderResponse>(_mapper.Map<OrderResponse>(order));
     }
-
 
     private async Task<TotalAmountResponse> CalculateTotalAmount(long userId, string couponCode, IEnumerable<CartResponse> cartItems)
     {
@@ -105,7 +110,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         {
             BasketAmount = Convert.ToDecimal(totalAmount),
             totalAmountAfterCouponApplied = totalAmountAfterCouponApplied,
-            totalAmountAfterPointApplied = Convert.ToDecimal(totalAmountAfterPointApplied)
+            totalAmountAfterPointApplied = Convert.ToDecimal(totalAmountAfterPointApplied.TotalAmount)
         };
     }
 
@@ -140,53 +145,91 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         }
     }
 
-    private async Task<decimal> AddPointToDigitalWallet(IEnumerable<CartResponse> cartItems, long userId)
+    private async Task<decimal> AddPointToDigitalWallet(IEnumerable<CartResponse> cartItems, long userId, decimal paidAmount, decimal originalTotalAmount)
     {
         var totalPointAmount = 0m;
+
+        if (paidAmount <= 0)
+        {
+            return totalPointAmount;
+        }
+
+        var paymentRatio = paidAmount / originalTotalAmount;
 
         foreach (var item in cartItems)
         {
             var product = await _mediator.Send(new GetProductByIdQuery(item.ProductId));
-            var pointAmount = (product.Data.Price * item.Quantity) * (product.Data.PointPercentage / 100);
 
-            if (pointAmount > product.Data.MaxPoint)
+            var potentialPointAmount = (item.Price * item.Quantity) * (product.Data.PointPercentage / 100);
+
+            if (potentialPointAmount > product.Data.MaxPoint)
             {
-                pointAmount = product.Data.MaxPoint;
+                potentialPointAmount = product.Data.MaxPoint;
             }
+
+            var pointAmount = potentialPointAmount * paymentRatio;
 
             await _mediator.Send(new AddPointToDigitalWalletCommand(userId, pointAmount));
             totalPointAmount += pointAmount;
         }
+
         return totalPointAmount;
     }
 
-    private async Task<decimal?> ApplyPoint(long userId, decimal? totalAmount)
+    private async Task<ApplyPointResponse> ApplyPoint(long userId, decimal? totalAmount)
     {
 
         var digitalWallet = await _mediator.Send(new GetDigitalWalletByUserIdQuery(userId));
+        decimal? totalAmountForOpr = totalAmount;
 
-        if (digitalWallet.Data.PointBalance > 0)
+        if (digitalWallet.Data.PointBalance >= totalAmountForOpr)
         {
-            if (digitalWallet.Data.PointBalance >= totalAmount)
-            {
-                digitalWallet.Data.PointBalance -= totalAmount;
-                totalAmount = 0;
-            }
-            else
-            {
-                totalAmount -= digitalWallet.Data.PointBalance;
-                digitalWallet.Data.PointBalance = 0;
-            }
-
-            await _mediator.Send(new UpdateDigitalWalletCommand(digitalWallet.Data.Id, new DigitalWalletRequest
-            {
-                PointBalance = digitalWallet.Data.PointBalance,
-                UserId = userId
-            }));
+            digitalWallet.Data.PointBalance -= totalAmountForOpr;
+            totalAmountForOpr = 0;
+        }
+        else
+        {
+            totalAmountForOpr -= digitalWallet.Data.PointBalance;
+            digitalWallet.Data.PointBalance = 0;
         }
 
-        return totalAmount;
+        var response = new ApplyPointResponse
+        {
+            PointBalance = digitalWallet.Data.PointBalance,
+            TotalAmount = totalAmountForOpr
+        };
+        return response;
+    }
 
+    private async Task DecreasePoint(long userId, TotalAmountResponse totalAmountResponse)
+    {
+        var digitalWallet = await _mediator.Send(new GetDigitalWalletByUserIdQuery(userId));
 
+        ApplyPointResponse applyPointResponse = await ApplyPoint(userId, totalAmountResponse.totalAmountAfterCouponApplied);
+
+        await _mediator.Send(new UpdateDigitalWalletCommand(digitalWallet.Data.Id, new DigitalWalletRequest
+        {
+            PointBalance = applyPointResponse.PointBalance,
+            UserId = userId
+        }));
+    }
+
+    private async Task CheckStock(IEnumerable<CartResponse> cartItems)
+    {
+        foreach (var item in cartItems)
+        {
+            var product = await _mediator.Send(new GetProductByIdQuery(item.ProductId));
+
+            if(product.Data.StockCount < item.Quantity)
+            {
+                throw new Exception($"{product.Data.Name} is out of stock");
+            }
+        }
+    }
+
+    private string GenerateOrderNumber()
+    {
+        Random random = new Random();
+        return random.Next(100000000, 999999999).ToString();
     }
 }

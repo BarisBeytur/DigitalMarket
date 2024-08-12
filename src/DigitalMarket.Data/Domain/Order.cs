@@ -8,6 +8,7 @@ namespace DigitalMarket.Data.Domain
     public class Order : BaseEntity
     {
         public decimal TotalAmount { get; set; }
+        public string OrderNumber { get; set; }
         public decimal? CouponAmount { get; set; }
         public decimal? PointAmount { get; set; }
         public decimal? BasketAmount { get; set; }

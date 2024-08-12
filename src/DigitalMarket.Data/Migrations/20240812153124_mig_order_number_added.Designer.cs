@@ -4,6 +4,7 @@ using DigitalMarket.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DigitalMarket.Data.Migrations
 {
     [DbContext(typeof(DigitalMarketDbContext))]
-    partial class DigitalMarketDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240812153124_mig_order_number_added")]
+    partial class mig_order_number_added
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

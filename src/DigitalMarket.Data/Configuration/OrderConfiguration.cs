@@ -22,6 +22,10 @@ namespace DigitalMarket.Data.Configuration
                 .IsRequired()
                 .HasDefaultValue(1);
 
+            builder.Property(x => x.OrderNumber)
+                .IsRequired()
+                .HasMaxLength(10);
+
             builder.Property(p => p.CouponAmount)
                 .IsRequired(false)
                 .HasPrecision(18, 2)

@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace DigitalMarket.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class CartController : ControllerBase
     {
@@ -28,7 +28,7 @@ namespace DigitalMarket.Api.Controllers
             return Ok(response);
         }
 
-        [HttpPut("UpdateCart")]
+        [HttpPost("SetCart")]
         public async Task<IActionResult> UpdateCart([FromHeader] long userId, [FromBody]AddProductToCartRequest request)
         {
             var command = new AddProductToCartCommand()

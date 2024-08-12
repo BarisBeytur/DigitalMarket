@@ -4,7 +4,6 @@ using DigitalMarket.Business.CQRS.Queries.OrderQueries;
 using DigitalMarket.Schema.Request;
 using DigitalMarket.Schema.Response;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DigitalMarket.Api.Controllers
@@ -27,6 +26,13 @@ namespace DigitalMarket.Api.Controllers
             return response;
         }
 
+        [HttpGet("GetByOrderNumber")]
+        public async Task<ApiResponse<OrderResponse>> GetByOrderNumber([FromQuery]string orderNumber)
+        {
+            var response = await _mediator.Send(new GetByOrderNumberQuery(orderNumber));
+            return response;
+        }
+
         [HttpGet("GetActiveOrders")]
         public async Task<ApiResponse<List<OrderResponse>>> GetActiveOrders()
         {
@@ -42,9 +48,16 @@ namespace DigitalMarket.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ApiResponse<OrderResponse>> Post(OrderRequest orderRequest)
+        public async Task<ApiResponse<OrderResponse>> Post([FromHeader] string NameSurname, [FromHeader] string CardNo, [FromHeader] string ExpirationDate, [FromHeader] string CVV, OrderRequest orderRequest)
         {
-            var response = await _mediator.Send(new CreateOrderCommand(orderRequest));
+            var paymentRequest = new PaymentRequest
+            {
+                NameSurname = NameSurname,
+                CardNo = CardNo,
+                ExpirationDate = ExpirationDate,
+                CVV = CVV
+            };
+            var response = await _mediator.Send(new CreateOrderCommand(orderRequest, paymentRequest));
             return response;
         }
 
