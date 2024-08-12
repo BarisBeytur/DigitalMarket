@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
+using DigitalMarket.Api.Middlewares;
 using DigitalMarket.Base.Session;
 using DigitalMarket.Base.Token;
 using DigitalMarket.Business.Infrastructure.DependencyResolvers;
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -92,6 +94,17 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
+builder.Services.AddMemoryCache();
+
+var redisConfig = new ConfigurationOptions();
+redisConfig.DefaultDatabase = 0;
+redisConfig.EndPoints.Add(builder.Configuration["Redis:Host"], Convert.ToInt32(builder.Configuration["Redis:Port"]));
+builder.Services.AddStackExchangeRedisCache(opt =>
+{
+    opt.ConfigurationOptions = redisConfig;
+    opt.InstanceName = builder.Configuration["Redis:InstanceName"];
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -116,6 +129,7 @@ builder.Services.AddSwaggerGen(c =>
         { securityScheme, new string[] { } }
     });
 });
+
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
@@ -142,6 +156,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 
