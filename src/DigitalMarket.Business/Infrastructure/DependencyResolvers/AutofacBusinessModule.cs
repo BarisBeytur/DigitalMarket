@@ -3,6 +3,7 @@ using AutoMapper;
 using DigitalMarket.Business.CQRS.Commands.CategoryCommands;
 using DigitalMarket.Business.Infrastructure.Mapping.AutoMapper;
 using DigitalMarket.Business.Services.PaymentService;
+using DigitalMarket.Business.Services.TokenService;
 using DigitalMarket.Data.Context;
 using DigitalMarket.Data.UnitOfWork;
 using FluentValidation;
@@ -22,9 +23,9 @@ namespace DigitalMarket.Business.Infrastructure.DependencyResolvers
                    .As(typeof(IUnitOfWork<>))
                    .InstancePerLifetimeScope();
 
-            //builder.RegisterType<IPaymentService>()
-            //       .As<PaymentService>()
-            //       .InstancePerLifetimeScope();
+            builder.RegisterType<PaymentService>()
+                   .As<IPaymentService>()
+                   .InstancePerLifetimeScope();
 
             // FluentValidation
             builder.RegisterAssemblyTypes(AppDomain.CurrentDomain.GetAssemblies())
@@ -51,16 +52,6 @@ namespace DigitalMarket.Business.Infrastructure.DependencyResolvers
             // MediatR'nun handler'larını kaydetme
             builder.RegisterAssemblyTypes(typeof(CreateCategoryCommandHandler).Assembly)
                    .AsImplementedInterfaces();
-
-            // DbContext
-            builder.Register(ctx =>
-            {
-                var config = ctx.Resolve<IConfiguration>();
-                var optionsBuilder = new DbContextOptionsBuilder<DigitalMarketDbContext>();
-                optionsBuilder.UseSqlServer(config.GetConnectionString("DigitalMarketDbConnection"));
-
-                return new DigitalMarketDbContext(optionsBuilder.Options);
-            }).AsSelf().InstancePerLifetimeScope();
 
 
             // Redis
