@@ -12,8 +12,6 @@ Update-Database -StartupProject DigitalMarket.Api -Project DigitalMarket.Data
 
 
 
-
-
 # Proje Kurulumu ve Calistirma
 
 ## Gereksinimler
