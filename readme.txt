@@ -1,72 +1,99 @@
-PROJE POSTMAN DÖKÜMANTASYONU : https://documenter.getpostman.com/view/28601501/2sA3s4mVqH
+# Digital Market
 
 Patika & Papara .NET Bootcamp Final Project
 
-Digital Market 
+---
 
+## Proje Hakkında
+Digital Market, .NET Core kullanılarak geliştirilmiş bir dijital market platformu projesidir. Proje kullanıcıların dijital olarak satılabilen ürünler satın alabilmesini ve her satın alım sonucu cashback sistemi ile puan ve indirimler kazanması üzerine kurgulanmıştır. Proje, modern yazılım geliştirme prensipleri ve teknolojileriyle tasarlanmıştır. 
 
-Proje Kurulumu ve Calistirma
+## Postman Dökümantasyonu
+Proje API dokümantasyonu için aşağıdaki Postman linkini kullanabilirsiniz:
+[Postman Dökümantasyonu](https://documenter.getpostman.com/view/28601501/2sA3s4mVqH)
 
-Gereksinimler
-- Docker ve Docker Compose yuklu olmali.
+---
 
-Redis'i Baslatma
-1 - Projeyi klonladiktan sonra, Docker Compose kullanarak Redis'i baslatin:
+## Proje Kurulumu ve Çalıştırma
 
-VS uzerinden gelistirici powershell acildiktan sonra: 
-2 - docker-compose up -d
+### Gereksinimler
+- Docker ve Docker Compose kurulu olmalıdır.
 
-VS harici bir IDE icin:
-2 - cd ile proje dizinine gidin ve asagidaki komutu calistirin: docker-compose up -d
+### Redis'i Başlatma
+1. Projeyi klonladıktan sonra, Docker Compose kullanarak Redis'i başlatın.
 
-3 - AppSetting uzerinden ConnectionStrings altindaki "DigitalMarketDbConnection" alanina connection stringinizi girin.
+#### Visual Studio üzerinden:
+```bash
+# Geliştirici PowerShell'i açın ve aşağıdaki komutu çalıştırın:
+docker-compose up -d
+```
 
-4 - Gelistirici powershell uzerinden: 
-Update-Database -StartupProject DigitalMarket.Api -Project DigitalMarket.Data  -> komutunu calistirarak veritabanini olusturun.
+#### Diğer IDE'ler için:
+```bash
+# Proje dizinine gidin ve aşağıdaki komutu çalıştırın:
+cd <proje-dizini>
+docker-compose up -d
+```
 
-5 - Projeyi calistirabilirsiniz.
+2. `appsettings.json` dosyasındaki **ConnectionStrings** bölümünde yer alan `DigitalMarketDbConnection` alanına veritabanı bağlantı stringinizi ekleyin.
 
-
-
-Project Tech Stack : 
-.NET Core 
-Microsoft SQL Server
-Entity Framework Core
-Identity
-JWT
-AutoMapper
-FluentValidation
-AutoFac
-Redis
-Docker
-MediatR
-
-
-
-Project Architecture : 
-CQRS
-Mediator
-Generic Repository
-Unit Of Work
-
-
-
-Database Migration Command:
-Add-Migration mig_init -StartupProject DigitalMarket.Api -Project DigitalMarket.Data
-
-Database Update Command:
+3. Veritabanını oluşturmak için aşağıdaki komutu çalıştırın:
+```bash
 Update-Database -StartupProject DigitalMarket.Api -Project DigitalMarket.Data
+```
 
+4. Artık projeyi çalıştırabilirsiniz.
 
+---
 
-EKSTRA
+## Kullanılan Teknolojiler
 
-Servisleri Durdurmak icin:
+- **.NET Core**  
+- **Microsoft SQL Server**  
+- **Entity Framework Core**  
+- **Identity**  
+- **JWT** (JSON Web Tokens)  
+- **AutoMapper**  
+- **FluentValidation**  
+- **AutoFac**  
+- **Redis**  
+- **Docker**  
+- **MediatR**
+
+---
+
+## Proje Mimarisi
+
+- **CQRS** (Command Query Responsibility Segregation)  
+- **Mediator** (MediatR kullanımı)  
+- **Generic Repository**  
+- **Unit Of Work**
+
+---
+
+## Veritabanı İşlemleri
+
+### Migration Oluşturma Komutu:
+```bash
+Add-Migration mig_init -StartupProject DigitalMarket.Api -Project DigitalMarket.Data
+```
+
+### Veritabanını Güncelleme Komutu:
+```bash
+Update-Database -StartupProject DigitalMarket.Api -Project DigitalMarket.Data
+```
+
+---
+
+## Ekstra Komutlar
+
+### Servisleri Durdurmak:
+```bash
 docker-compose down
+```
 
-Servislerin Durumunu Goruntulemek icin:
+### Servislerin Durumunu Görüntülemek:
+```bash
 docker-compose ps
+```
 
-
-
-
+---
